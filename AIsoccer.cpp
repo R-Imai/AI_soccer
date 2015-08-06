@@ -7,6 +7,7 @@
 /*				列挙型		Doxygen																				*/
 /*				どのタイミングでオブジェクト指向を入れるか悩み中←一回試合ができてから?							*/
 /*						それまでturn_G()とG_go()とoneman()が使えない←必要なら修正								*/
+/*	How to use:	クリック→その場所にボールがいってスタート	a→一時停止	s→再開									*/
 /*--------------------------------------------------------------------------------------------------------------*/
 
 
@@ -243,6 +244,8 @@ struct P_data G_go(struct P_data play){		//Aチーム用しかないので修正必要()
 	return play;
 }
 
+
+
 struct P_data go(struct P_data play){//進む関数
 	play.v = 0.1;
 	if (play.have == 1){
@@ -394,8 +397,7 @@ struct P_data get(struct P_data play){//ボールを取りに行く関数
 
 	if (fabs(dist(x, y, ball.X, ball.Y)) <= 20 && fmax(x1, x2) > x && fmin(x1, x2)<x && fmax(y1, y2)>y && fmin(y1, y2)<y){
 		play.v = 0;
-		play.cnd = 2;
-		play.have = 1;
+		play.re = 1;
 	}
 	return play;
 }
@@ -410,6 +412,15 @@ struct P_data turn_G(P_data play){//ゴールを向く関数(これもAチームのしかないので
 	return play;
 }
 
+struct P_data B_turn_G(P_data play){//ゴールを向く関数(これもAチームのしかないので修正)
+	double ang;
+	play = turn(play, atan2(-play.Y + 905, -play.X)*(180 / P));
+	if (play.re == 1){
+		play.cnd = 3;
+	}
+
+	return play;
+}
 
 
 
@@ -532,9 +543,10 @@ void A_strategy(void){	//Aチーム戦略関数(みんなにここにいろいろ書いてもらう)
 			Ateam_strategy = 1;
 		}
 	}
-	printf("%d\n",Ateam_strategy);
+
+	//printf("%d\n",Ateam_strategy);
 	switch (Ateam_strategy){
-	case 0:
+	case 0://攻撃
 		n = 1;
 		while (n <= PLAYER){
 			B_dist[n] = dist(A[n].X, A[n].Y, ball.X, ball.Y);	//ボールとの距離を測る
@@ -616,6 +628,10 @@ void A_strategy(void){	//Aチーム戦略関数(みんなにここにいろいろ書いてもらう)
 				}
 				if (A[n].cnd == 1){
 					A[n] = get(A[n]);
+					if (A[n].re == 1){
+						A[n].re = 0;
+						A[n].cnd = 2;
+					}
 				}
 				if (A[n].cnd == 2){
 					A[n] = pass(A[n], A[Atean_mode[4]]);
@@ -750,7 +766,8 @@ void A_strategy(void){	//Aチーム戦略関数(みんなにここにいろいろ書いてもらう)
 			n++;
 		}
 		break;
-	case 1:
+	case 1://守備
+
 		n = 1;
 		while (n <= 4){
 			if (n != Atean_mode[1]){
@@ -769,13 +786,12 @@ void A_strategy(void){	//Aチーム戦略関数(みんなにここにいろいろ書いてもらう)
 		//}
 		if (A[Atean_mode[1]].cnd != 4){
 			A[Atean_mode[1]] = move(A[Atean_mode[1]], 0, 800);
+			if (A[Atean_mode[1]].re == 1){
+				A[Atean_mode[1]].re = 0;
+				A[Atean_mode[1]].cnd = 4;
+			}
 		}
-		if (A[Atean_mode[1]].re == 1){
-			A[Atean_mode[1]].re = 0;
-			A[Atean_mode[1]].cnd = 4;
-		}
-		if (A[Atean_mode[1]].cnd == 4){
-
+		else if (A[Atean_mode[1]].cnd == 4){
 			A[Atean_mode[1]] = turn_B(A[Atean_mode[1]]);
 		}
 		break;
@@ -940,11 +956,38 @@ void A_strategy(void){	//Aチーム戦略関数(みんなにここにいろいろ書いてもらう)
 	
 }
 
-void B_strategy(void){//Bチームの戦略関数(みんなにここにいろいろ書いてもらう)
-	double B4_X = pow(10000 / (1 + pow((ball.Y + 905) / ball.X,2)), 0.5);
-	if (ball.X < 0&&B4_X>0){
+void B_Keeper(void){
+	double B4_X = pow(10000 / (1 + pow((ball.Y + 905) / ball.X, 2)), 0.5);
+	if (ball.X < 0 && B4_X>0){
 		B4_X = -B4_X;
 	}
+	if (B[4].cnd == 0){
+		B[4] = move(B[4], B4_X, ((ball.Y + 905) / ball.X)*B4_X - 905);
+		if (B[4].re == 1){
+			B[4].cnd = 1;
+			B[4].re = 0;
+		}
+	}
+	if (B[4].cnd == 1){
+		B[4] = turn_B(B[4]);
+	}
+	if (B[4].have == 1){
+		B[4].cnd = 2;
+	}
+	if (B[4].cnd == 2){
+		B[4] = pass(B[4], B[1]);
+	}
+	if (dist(B[4].X, B[4].Y, B4_X, ((ball.Y + 905) / ball.X)*B4_X - 905) > 10 && B[4].have == 0 && B[4].cnd != 0){
+		B[4].cnd = 0;
+	}
+}
+
+void B_strategy(void){//Bチームの戦略関数(みんなにここにいろいろ書いてもらう)
+	double B3_X = pow(240000 / (1 + pow((ball.Y + 905) / ball.X, 2)), 0.5);
+	if (ball.X < 0 && B3_X>0){
+		B3_X = -B3_X;
+	}
+
 	if (Bteam_strategy == 0 || Bteam_strategy == 1){
 		if (ball.have >= 0){
 			Bteam_strategy = 0;
@@ -957,10 +1000,10 @@ void B_strategy(void){//Bチームの戦略関数(みんなにここにいろいろ書いてもらう)
 	{
 	case 0:
 	case 1:
-		if (B[2].have == 0){
+		/*if (B[2].have == 0){
 			B[2] = move(B[2], ball.X, ball.Y);
 		}
-		/*if (B[2].have == 1){
+		if (B[2].have == 1){
 			B[2].v = 0;
 			B[2]=turn(B[2], (atan2(905 - B[2].Y, -B[2].X)*180/P));
 			if (B[2].re == 1){
@@ -968,75 +1011,71 @@ void B_strategy(void){//Bチームの戦略関数(みんなにここにいろいろ書いてもらう)
 			B[2].re = 0;
 			}
 			}
-			if (B[2].cnd == 1){
+		if (B[2].cnd == 1){
 			B[2] = shoot(B[2]);
-			}
 			if (B[2].re == 1){
-			B[2].cnd = 2;
-			B[2].re = 0;
-			}*/
-
-
-		if (B[4].cnd == 0){
-			B[4] = move(B[4], B4_X, ((ball.Y + 905) / ball.X)*B4_X - 905);
-			if (B[4].re == 1){
-				B[4].cnd = 1;
-				B[4].re = 0;
+				B[2].cnd = 2;
+				B[2].re = 0;
 			}
-		}
-		if (B[4].cnd == 1){
-			B[4] = turn_B(B[4]);
-		}
-		if (B[4].have == 1){
-			B[4].cnd = 2;
-		}
-		if (B[4].cnd == 2){
-			B[4] = pass(B[4], B[1]);
-		}
-		if (dist(B[4].X, B[4].Y, B4_X, ((ball.Y + 905) / ball.X)*B4_X - 905) > 10 && B[4].have == 0 && B[4].cnd != 0){
-			B[4].cnd = 0;
-		}
+		}*/
 
+		B_Keeper();
 
 		if (B[1].have == 0){
 			B[1] = move(B[1], ball.X, ball.Y);
 		}
 		if (B[1].have == 1){
 			B[1].v = 0;
-			B[1] = turn(B[1], 60);
+			//B[1] = B_turn_G(B[1]);
+			B[1].cnd = 1;
 			if (B[1].re == 1){
 				B[1].cnd = 1;
 				B[1].re = 0;
 			}
 		}
 		if (B[1].cnd == 1){
-			B[1] = shoot(B[1]);
+			//B[1] = shoot(B[1]);
+			B[1] = pass(B[1], B[2]);
 		}
 		if (B[1].re == 1){
-			B[1].cnd = 2;
+			B[1].cnd = 0;
 			B[1].re = 0;
 		}
 
 		if (B[2].cnd == 0){
-			B[2] = move(B[2], (A[Atean_mode[3]].X + A[Atean_mode[2]].X) / 2, (A[Atean_mode[3]].Y + A[Atean_mode[2]].Y) / 2);
+			//B[2] = move(B[2], (A[Atean_mode[3]].X + A[Atean_mode[2]].X) / 2, (A[Atean_mode[3]].Y + A[Atean_mode[2]].Y) / 2);
+			B[2] = move(B[2], 400, 600);
 			if (B[2].re == 1){
 				B[2].cnd = 1;
 				B[2].re = 0;
 			}
 		}
+		printf("%d\n", B[2].cnd);
 		if (B[2].cnd == 1){
 			B[2] = turn_B(B[2]);
+			//B[2] = turn_P(B[2],B[1]);
 			if (B[2].re == 1){
 				B[2].re = 0;
+				//B[2].cnd = 2;
 			}
 		}
 		if (B[2].have == 1){
-			B[2].cnd = 2;
+			//B[2] = pass(B[2], B[1]);
+			B[2] = B_turn_G(B[2]);
+			if (B[2].re == 1){
+				printf("NO!\n");
+				B[2].cnd = 3;
+				B[2].re = 0;
+			}
+
+			if (B[2].cnd == 3){
+				B[2] = shoot(B[2]);
+			}
 		}
-		if (B[2].have == 0){
-			B[2].cnd = 1;
+		if (B[2].have == 0&&B[2].cnd==2){
+			B[2].cnd = 0;
 		}
-		if (B[2].cnd == 2){
+		/*if (B[2].cnd == 2){
 			B[2] = pass(B[2], B[1]);
 			if (B[2].re == 1){
 				B[2].cnd = 0;
@@ -1046,6 +1085,48 @@ void B_strategy(void){//Bチームの戦略関数(みんなにここにいろいろ書いてもらう)
 		if (dist(B[2].X, B[2].Y, (A[Atean_mode[3]].X + A[Atean_mode[2]].X) / 2, (A[Atean_mode[3]].Y + A[Atean_mode[2]].Y) / 2) > 10 && B[2].have == 0 && B[2].cnd != 0){
 			B[2].cnd = 0;
 			B[2].re = 0;
+		}*/
+
+		if (ball.Y >= 0){
+			if (B[3].cnd == 0){
+				B[3] = move(B[3], B3_X, ((ball.Y + 905) / ball.X)*B3_X - 905);
+				if (B[3].re == 1){
+					B[3].cnd = 1;
+					B[3].re = 0;
+				}
+			}
+			if (B[3].cnd == 1){
+				B[3] = turn_B(B[3]);
+			}
+			if (B[3].have == 1){
+				B[3].cnd = 2;
+			}
+			if (B[3].cnd == 2){
+				B[3] = pass(B[3], B[1]);
+			}
+			if (dist(B[3].X, B[3].Y, B3_X, ((ball.Y + 905) / ball.X)*B3_X - 905) > 10 && B[3].have == 0 && B[3].cnd != 0){
+				B[3].cnd = 0;
+			}
+		}
+		else{
+			if (B[3].have == 0){
+				B[3] = move(B[3], ball.X, ball.Y);
+			}
+			if (B[3].have == 1){
+				B[3].v = 0;
+				B[3] = turn(B[3], (atan2(905 - B[3].Y, -B[3].X) * 180 / P));
+				if (B[3].re == 1){
+					B[3].cnd = 1;
+					B[3].re = 0;
+				}
+			}
+			if (B[3].cnd == 1){
+				B[3] = pass(B[3], B[2]);
+				if (B[3].re == 1){
+					B[3].cnd = 2;
+					B[3].re = 0;
+				}
+			}
 		}
 		break;
 	}
