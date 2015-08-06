@@ -1,12 +1,12 @@
 /*--------------------------------------------------------------------------------------------------------------*/
-/*	Name:		Artificial_Intelligence_soccer.c																*/
+/*	Name:		ArtificialIntelligence_soccer.c																*/
 /*	Author:		Ryosuke.IMAI																					*/
 /*	Created:	2015 / 02 / 01																					*/
-/*	Last Date:	2015 / 08 / 02																					*/
+/*	Last Date:	2015 / 08 / 06																					*/
 /*	Note:		ƒ{[ƒ‹‚ªƒ‰ƒCƒ“‚ğŠ„‚Á‚½‚Ì‡‚Ì—¬‚ê‚ÆƒvƒŒƒCƒ„[“¯m‚ªd‚È‚ç‚È‚¢‚æ‚¤‚ÈŠÖ”‚Ìì¬‚ª‘æˆê—Dæ‰Û‘è	*/
 /*				—ñ‹“Œ^		Doxygen																				*/
 /*				‚Ç‚Ìƒ^ƒCƒ~ƒ“ƒO‚ÅƒIƒuƒWƒFƒNƒgwŒü‚ğ“ü‚ê‚é‚©”Y‚İ’†©ˆê‰ñ‡‚ª‚Å‚«‚Ä‚©‚ç?							*/
-/*						‚»‚ê‚Ü‚Åturn_G()‚ÆG_go()‚Æoneman()‚ªg‚¦‚È‚¢©•K—v‚È‚çC³								*/
+/*				ƒS[ƒ‹‚ÌxÀ•W‚ÉŠÖ˜A‚µ‚Äƒ{[ƒ‹‚ª~‚Ü‚éƒoƒO‚ª‚ ‚éB	“¯‚¶ˆÓ–¡‚ğ‚ÂŠÖ”‚ª‚ ‚é‚©‚à?				*/
 /*	How to use:	ƒNƒŠƒbƒN¨‚»‚ÌêŠ‚Éƒ{[ƒ‹‚ª‚¢‚Á‚ÄƒXƒ^[ƒg	a¨ˆê’â~	s¨ÄŠJ									*/
 /*--------------------------------------------------------------------------------------------------------------*/
 
@@ -29,6 +29,7 @@
 struct P_data{			//ƒvƒŒƒCƒ„[ƒf[ƒ^\‘¢‘Ì
 	double X, Y, ang, r_x, r_y, l_x, l_y, vx, vy, vang, v;
 	int mode, cnd, have,re;
+	char team;
 	int debug;
 };
 
@@ -63,7 +64,6 @@ void circle(double x,double y,double r)//‰~‚ğ•`‚­ŠÖ”(x,y:’†SÀ•W,r:”¼Œa)
 	glEnd();
 }
 
-
 void player(void)//l‚ğ•`‚­ŠÖ”
 {
 	double s = P / 18;
@@ -75,6 +75,13 @@ void player(void)//l‚ğ•`‚­ŠÖ”
 		i = i + 1;
 	}
 	glEnd();
+}
+
+void player_set(void){
+	for (int n = 0; n < PLAYER; n++){
+		A[n].team = 'A';
+		B[n].team = 'B';
+	}
 }
 
 
@@ -137,9 +144,6 @@ double dist(double x1, double y1, double x2, double y2){//(x1,y1)‚Æ(x2,y2)“ñ“_ŠÔ
 	re = pow(re, 0.5);
 	return re;
 }
-
-
-
 
 void player_wall(void){//l‚Éƒ{[ƒ‹‚ª“–‚½‚Á‚½‚©‚ÌŠÖ”
 	double range,ang;
@@ -210,6 +214,20 @@ void player_wall(void){//l‚Éƒ{[ƒ‹‚ª“–‚½‚Á‚½‚©‚ÌŠÖ”
 	
 }
 
+void goal(void){//ƒS[ƒ‹”»’èŠÖ”
+	if (l_g < ball.X&&ball.X<r_g&&ball.Y>A_g){
+		A_init();
+		B_init();
+		goalflag = 1;
+	}
+	else if (l_g < ball.X&&ball.X < r_g&&ball.Y < B_g){
+		A_init();
+		B_init();
+		goalflag = 1;
+	}
+}
+
+
 void debuger(int com){//ƒfƒoƒbƒO—p‚ÌƒvƒŠƒ“ƒgŠÖ”@1:ˆÊ’u	2:mode	3:ang	4:cnd
 	switch (com){
 		case 1:
@@ -230,39 +248,16 @@ void debuger(int com){//ƒfƒoƒbƒO—p‚ÌƒvƒŠƒ“ƒgŠÖ”@1:ˆÊ’u	2:mode	3:ang	4:cnd
 }
 
 
-struct P_data G_go(struct P_data play){		//Aƒ`[ƒ€—p‚µ‚©‚È‚¢‚Ì‚ÅC³•K—v()
-	if (dist(play.X, play.Y, 0, -905) > 400){
-		play.v = 0.1;
-		ball.X = ball.X + play.v*cos(play.ang);
-		ball.Y = ball.Y + play.v*sin(play.ang);
-
-	}
-	else	//‚±‚Ì‚Ö‚ñ‚àplay.re=1‚É‚µ‚È‚¢‚Æ”Ä—p«‚ª‚È‚¢	
-	{
-		play.cnd = 4;
-	}
-	return play;
-}
-
-
-
-struct P_data go(struct P_data play){//i‚ŞŠÖ”
-	play.v = 0.1;
-	if (play.have == 1){
-		ball.X = ball.X + play.v*cos(play.ang);
-		ball.Y = ball.Y + play.v*sin(play.ang);
-	}
-	return play;
-}
-
-struct P_data turn(struct P_data play, double ang){//‰ñ“]ŠÖ”(ˆø”‚Ídeg)
+struct P_data turn(struct P_data play, double ang){//‰ñ“]ŠÖ”(ˆø”‚Ídeg)(Š®—¹pray.re‚ª1‚É‚È‚é)
 	double ang_path = play.ang - ang;
-	if (ang_path > 180){
+	if (ang_path > 180){			//Šp“x‚Ì’²®
 		ang_path = ang_path - 360;
-	}else if (ang_path < -180){
+	}
+	else if (ang_path < -180){
 		ang_path = ang_path + 360;
 	}
-	if (fabs(ang_path) >= 0.2){//‚Ç‚Á‚¿ü‚è‚ª‹ß‚¢‚©ŒvZ(‚±‚Ì•Ó‚ğí—ª‚É‚·‚é‚È‚çV‚µ‚­ŠÖ”ì‚é)
+
+	if (fabs(ang_path) >= 0.2){//‚Ç‚Á‚¿ü‚è‚ª‹ß‚¢‚©ŒvZ(‚±‚Ì•Ó‚ğí—ª‚Å•¡G‚É‚·‚é‚È‚çV‚µ‚­ŠÖ”ì‚é)
 		play.v = 0;
 		if (ang_path<0){		//”½Œv‰ñ‚è
 
@@ -281,14 +276,73 @@ struct P_data turn(struct P_data play, double ang){//‰ñ“]ŠÖ”(ˆø”‚Ídeg)
 		}
 	}
 
+
 	else{
-		play.re=1;
+		play.re = 1;
 	}
 
 	return play;
 }
 
-struct P_data turn_P(struct P_data turner, struct P_data waiter){//turner‚ªwaiter‚ğŒü‚­ŠÖ”
+struct P_data turn_G(P_data play){//ƒS[ƒ‹‚ğŒü‚­ŠÖ”(Š®—¹pray.re‚ª1‚É‚È‚é)
+	int side;
+	double ang;
+	if (play.team == 'A'){
+		side = -1;
+	}
+	else if (play.team == 'B'){
+		side = 1;
+	}
+	play = turn(play, atan2(-play.Y + side * 905, -play.X)*(180 / P));
+
+	return play;
+}
+
+struct P_data G_go(struct P_data play,int meter){		//ƒS[ƒ‹‚Öi‚ŞŠÖ”(Š®—¹pray.re‚ª1‚É‚È‚é)@meter:ƒS[ƒ‹‚Æ‚Ì‹——£
+	int side;
+	if (play.team == 'A'){
+		side = -1;
+	}
+	else if (play.team == 'B'){
+		side = 1;
+	}
+	printf("%d\n", play.re);
+	switch (play.re){
+	case 0:
+		play = turn_G(play);
+		if (play.re == 1){
+			play.re = 2;
+		}
+		break;
+	case 2:
+		if (dist(play.X, play.Y, 0, side * 905) > meter){
+			play.v = 0.1;
+			if (play.have == 1){
+				ball.X = ball.X + play.v*cos(play.ang*(P / 180));
+				ball.Y = ball.Y + play.v*sin(play.ang*(P / 180));
+			}
+		}
+		else{
+			play.re = 1;
+		}
+		break;
+	}
+	
+	return play;
+}
+
+
+
+struct P_data go(struct P_data play){//‚½‚¾i‚ŞŠÖ”(w’è“_‚Ímove(play,xx,yy)‚ğg—p)
+	play.v = 0.1;
+	if (play.have == 1){
+		ball.X = ball.X + play.v*cos(play.ang*(P / 180));
+		ball.Y = ball.Y + play.v*sin(play.ang*(P / 180));
+	}
+	return play;
+}
+
+struct P_data turn_P(struct P_data turner, struct P_data waiter){//turner‚ªwaiter‚ğŒü‚­ŠÖ”(Š®—¹pray.re‚ª1‚É‚È‚é)
 	
 	turner = turn(turner, atan2(waiter.Y - turner.Y, waiter.X - turner.X)*(180 / P));
 
@@ -310,18 +364,6 @@ struct P_data move(struct P_data play, double xx, double yy){//play‚ğ(xx,yy)‚ÖˆÚ
 	return play;
 }
 
-void goal(void){//ƒS[ƒ‹”»’èŠÖ”
-	if (l_g < ball.X&&ball.X<r_g&&ball.Y>A_g){
-		A_init();
-		B_init();
-		goalflag = 1;
-	}
-	else if (l_g < ball.X&&ball.X < r_g&&ball.Y < B_g){
-		A_init();
-		B_init();
-		goalflag = 1;
-	}
-}
 
 
 struct P_data find(struct P_data play){	//ƒ{[ƒ‹”­Œ©ŠÖ”
@@ -333,14 +375,13 @@ struct P_data find(struct P_data play){	//ƒ{[ƒ‹”­Œ©ŠÖ”
 		ang = ang - 360;
 	else if (ang<-180)
 		ang = ang + 360;
-
 	if (play.ang >= 180)
 		play.ang = play.ang - 360;
 	else if (play.ang<-180)
 		play.ang = play.ang + 360;
 
+
 	if ((ang>0.1 || ang<-0.1)){
-			play.cnd = 0;
 		play.v = 0;
 		if (ang>0)
 		{			
@@ -350,22 +391,22 @@ struct P_data find(struct P_data play){	//ƒ{[ƒ‹”­Œ©ŠÖ”
 		{
 			play.vang =  -0.02;
 		}
-	}
-	else if (ang<0.1&&-0.1<ang &&play.cnd==0){
-		play.cnd=1;
+	}else{
+		play.vang = 0.0;
+		play.re=1;
 	}
 	return play;
 
 }
 
 
-struct P_data pass(struct P_data passer, struct P_data getter){//passer‚ªgetter‚Öƒ{[ƒ‹‚ğ‚¯‚éŠÖ”
+struct P_data pass(struct P_data passer, struct P_data getter){//passer‚ªgetter‚Öƒ{[ƒ‹‚ğ‚¯‚éŠÖ”(Š®—¹pray.re‚ª1‚É‚È‚é)
 	double pass_ang,ang;
 	ang = atan2(getter.Y - ball.Y, getter.X - ball.X)*(180/P);
 	pass_ang = ang-passer.ang;
 	if (passer.have == 1){
 		if (fabs(pass_ang) < 30){
-			ball.vx = 0.5*cos(ang*P/180);
+			ball.vx = 0.5*cos(ang*P / 180);
 			ball.vy = 0.5*sin(ang*P / 180);
 			passer.have = 0;
 			passer.re = 1;
@@ -378,63 +419,6 @@ struct P_data pass(struct P_data passer, struct P_data getter){//passer‚ªgetter‚
 	return passer;
 }
 
-
-
-
-
-struct P_data get(struct P_data play){//ƒ{[ƒ‹‚ğæ‚è‚És‚­ŠÖ”
-
-	double x1, x2, y1, y2;
-
-	x1 = play.X + 40 * cos((P / 18)*(3) + (play.ang*(P / 180)));
-	y1 = play.Y + 40 * sin((P / 18)*(3) + (play.ang*(P / 180)));
-	x2 = play.X + 40 * cos((P / 18)*(34) + (play.ang*(P / 180)));
-	y2 = play.Y + 40 * sin((P / 18)*(34) + (play.ang*(P / 180)));
-
-	x = (1 / (pow(y2 - y1, 2) + pow(x2 - x1, 2)))*(((x2 - x1)*(y2 - y1)*ball.Y) + pow(x2 - x1, 2)*ball.X - (x2*y1 - x1*y2)*(y2 - y1));
-	y = ((y2 - y1) / (x2 - x1))*x + (y1*x2 - y2*x1) / (x2 - x1);
-	play.v = 0.1;
-
-	if (fabs(dist(x, y, ball.X, ball.Y)) <= 20 && fmax(x1, x2) > x && fmin(x1, x2)<x && fmax(y1, y2)>y && fmin(y1, y2)<y){
-		play.v = 0;
-		play.re = 1;
-	}
-	return play;
-}
-
-struct P_data turn_G(P_data play){//ƒS[ƒ‹‚ğŒü‚­ŠÖ”(‚±‚ê‚àAƒ`[ƒ€‚Ì‚µ‚©‚È‚¢‚Ì‚ÅC³)
-	double ang;
-	play = turn(play, atan2(-play.Y - 905, -play.X)*(180 / P));
-			if(play.re==1){
-				play.cnd = 3;
-			}
-
-	return play;
-}
-
-struct P_data B_turn_G(P_data play){//ƒS[ƒ‹‚ğŒü‚­ŠÖ”(‚±‚ê‚àAƒ`[ƒ€‚Ì‚µ‚©‚È‚¢‚Ì‚ÅC³)
-	double ang;
-	play = turn(play, atan2(-play.Y + 905, -play.X)*(180 / P));
-	if (play.re == 1){
-		play.cnd = 3;
-	}
-
-	return play;
-}
-
-
-
-struct P_data shoot(struct P_data play){//ƒVƒ…[ƒg‚·‚éŠÖ”(‚½‚¾v‚¢‚Á‚«‚è‚¯‚é‚¾‚¯)
-	if (play.have = 1){
-		play.v = 0;
-		play.vang = 0;
-		ball.vx = cos(play.ang*P/180);
-		ball.vy = sin(play.ang*P/180);
-		play.have = 0;
-		play.re = 1;
-	}
-	return play;
-}
 
 struct P_data turn_B(struct P_data play){//ƒ{[ƒ‹‚ÉŒü‚­ŠÖ”
 	double ang = atan2(ball.Y - play.Y, ball.X - play.X) * 180 / P;
@@ -450,44 +434,116 @@ struct P_data turn_B(struct P_data play){//ƒ{[ƒ‹‚ÉŒü‚­ŠÖ”
 }
 
 
+struct P_data get(struct P_data play){//ƒ{[ƒ‹‚ğæ‚è‚És‚­ŠÖ”(Š®—¹pray.re‚ª1‚É‚È‚é)
+
+	/*double x1, x2, y1, y2;
+
+	x1 = play.X + 40 * cos((P / 18)*(3) + (play.ang*(P / 180)));
+	y1 = play.Y + 40 * sin((P / 18)*(3) + (play.ang*(P / 180)));
+	x2 = play.X + 40 * cos((P / 18)*(34) + (play.ang*(P / 180)));
+	y2 = play.Y + 40 * sin((P / 18)*(34) + (play.ang*(P / 180)));
+
+	x = (1 / (pow(y2 - y1, 2) + pow(x2 - x1, 2)))*(((x2 - x1)*(y2 - y1)*ball.Y) + pow(x2 - x1, 2)*ball.X - (x2*y1 - x1*y2)*(y2 - y1));
+	y = ((y2 - y1) / (x2 - x1))*x + (y1*x2 - y2*x1) / (x2 - x1);*/
+	if (play.re == 0){
+		play = turn_B(play);
+		if (play.re = 1){
+			play.re = 3;
+		}
+	}
+
+	if (play.re == 3){
+		play.v = 0.1;
+		if (play.have == 1){
+			play.v = 0;
+			play.re = 1;
+		}
+	}
+	return play;
+}
+
+
+
+
+struct P_data shoot(struct P_data play){//ƒVƒ…[ƒg‚·‚éŠÖ”(‚½‚¾v‚¢‚Á‚«‚è‚¯‚é‚¾‚¯)(Š®—¹pray.re‚ª1‚É‚È‚é)
+	if (play.have = 1){
+		play.v = 0;
+		play.vang = 0;
+		ball.vx = cos(play.ang*P/180);
+		ball.vy = sin(play.ang*P/180);
+		play.have = 0;
+		play.re = 1;
+	}
+	return play;
+}
+
+
+
+
 
 
 
 struct P_data oneman(struct P_data play){//ƒƒ“ƒ}ƒ“ƒvƒŒ[—p‚ÌŠÖ”(Aƒ`[ƒ€ê—p)
 	if (ball.cnd != 1){
 
-		if (play.cnd != 4 || A[n].cnd != 2){
+		if (play.cnd==0){
 			play = find(play);
+			if (play.re == 1){
+				play.cnd = 1;
+				play.re = 0;
+			}
 		}
 		if (play.cnd == 1){
 			play = get(play);
+			if (play.have==1){
+				play.cnd = 2;
+				play.re = 0;
+			}
 		}
 		if (play.cnd == 2){
 			play = turn_G(play);
+			if (play.re == 1){
+				play.cnd = 3;
+				play.re = 0;
+			}
 		}
 		if (play.cnd == 3){
-			play = G_go(play);
+			play = G_go(play,400);
+			if (play.re == 1){
+				play.cnd = 4;
+				play.re = 0;
+			}
 		}
 		if (play.cnd == 4){
 			play = shoot(play);
-		}
-		if (play.cnd == 5){
-			ball.vx = 0.1 * cos((play.ang) * (P / 180));
-			ball.vy = 0.1 * sin((play.ang) * (P / 180));
-			play.have = 0;
-
+			if (play.re == 1){
+				play.cnd = 0;
+				play.re = 0;
+			}
 		}
 	}
 
 	return play;
 }
 
-void A_stop(void){//A‘Sˆõ‚ğƒXƒgƒbƒv(ƒI[ƒo[ƒ[ƒh‚ÅŒÂ•Ê‚É‚à~‚Ü‚ê‚é‚æ‚¤‚É‚·‚é?)
+void stop(char side){//ƒ`[ƒ€‘Sˆõ‚ğƒXƒgƒbƒv(ƒI[ƒo[ƒ[ƒh‚ÅŒÂ•Ê‚É‚à~‚Ü‚ê‚é‚æ‚¤‚É‚µ‚½)
 	int n = 1;
-	while (n <= 4){
-		A[n].v = 0.0;
-		n++;
+	if (side == 'A'){
+		while (n <= 4){
+			A[n].v = 0.0;
+			n++;
+		}
 	}
+	else if (side == 'B'){
+		while (n <= 4){
+			B[n].v = 0.0;
+			n++;
+		}
+	}
+}
+
+void stop(struct P_data play){//ˆêl‚ğƒXƒgƒbƒv
+	play.v = 0.0;
 }
 
 
@@ -1061,7 +1117,7 @@ void B_strategy(void){//Bƒ`[ƒ€‚Ìí—ªŠÖ”(‚İ‚ñ‚È‚É‚±‚±‚É‚¢‚ë‚¢‚ë‘‚¢‚Ä‚à‚ç‚¤)
 		}
 		if (B[2].have == 1){
 			//B[2] = pass(B[2], B[1]);
-			B[2] = B_turn_G(B[2]);
+			B[2] = turn_G(B[2]);
 			if (B[2].re == 1){
 				printf("NO!\n");
 				B[2].cnd = 3;
@@ -1145,7 +1201,7 @@ void A_lineover_init(void){//ü‚ğŠ„‚Á‚½‚ÌAƒ`[ƒ€‚ÌŠÖ”
 	}
 
 	n = 1;
-	A_stop();
+	stop('A');
 	while (n <= 4){
 		A[n].cnd = 0;
 		A[n].mode = 0;
@@ -1675,10 +1731,10 @@ void simu(void)
 			B[n].ang = B[n].ang + 360;
 
 
-		A[n].vx = A[n].v*cos(A[n].ang);
-		A[n].vy = A[n].v*sin(A[n].ang);
-		B[n].vx = B[n].v*cos(B[n].ang);
-		B[n].vy = B[n].v*sin(B[n].ang);
+		A[n].vx = A[n].v*cos(A[n].ang*(P / 180));
+		A[n].vy = A[n].v*sin(A[n].ang*(P / 180));
+		B[n].vx = B[n].v*cos(B[n].ang*(P / 180));
+		B[n].vy = B[n].v*sin(B[n].ang*(P / 180));
 
 		A[n].X = A[n].X + A[n].vx;
 		A[n].Y = A[n].Y + A[n].vy;
@@ -1699,8 +1755,7 @@ void simu(void)
 		
 			A_strategy();
 			B_strategy();
-		
-
+		//A[1] = oneman(A[1]);
 		/*while (n <= PLAYER){
 			if (A[n].mode == 1){
 				//printf("%d\n", A[n].cnd);
@@ -1926,6 +1981,7 @@ int main(int argc, char *argv[])
 {
 	ball.X = 0;
 	ball.Y = 0;
+	player_set();
 
 	glutInit(&argc, argv);							//‰Šú‰»
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
