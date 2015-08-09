@@ -227,6 +227,56 @@ void goal(void){//ゴール判定関数
 	}
 }
 
+void player_clash(void){
+	double theta;
+	for (int n = 1; n < PLAYER; n++){
+		if (dist(A[n].X, A[n].Y, B[n].X, B[n].Y) < 80){
+			theta = atan2(A[n].Y - B[n].Y, A[n].X - B[n].X);
+			A[n].X = (A[n].X + B[n].X) / 2 + 40 * cos(theta);
+			A[n].Y = (A[n].Y + B[n].Y) / 2 + 40 * sin(theta);
+			B[n].X = (A[n].X + B[n].X) / 2 - 40 * cos(theta);
+			B[n].Y = (A[n].Y + B[n].Y) / 2 - 40 * sin(theta);
+		}
+		for (int i = n+1; i < PLAYER+1; i++){
+			if (dist(A[n].X, A[n].Y, A[i].X, A[i].Y) < 80){
+				theta = atan2(A[n].Y - A[i].Y, A[n].X - A[i].X);
+				A[n].X = (A[n].X + A[i].X) / 2 + 40 * cos(theta);
+				A[n].Y = (A[n].Y + A[i].Y) / 2 + 40 * sin(theta);
+				A[i].X = (A[n].X + A[i].X) / 2 - 40 * cos(theta);
+				A[i].Y = (A[n].Y + A[i].Y) / 2 - 40 * sin(theta);
+			}
+			if (dist(A[n].X, A[n].Y, B[i].X, B[i].Y) < 80){
+				theta = atan2(A[n].Y - B[i].Y, A[n].X - B[i].X);
+				A[n].X = (A[n].X + B[i].X) / 2 + 40 * cos(theta);
+				A[n].Y = (A[n].Y + B[i].Y) / 2 + 40 * sin(theta);
+				B[i].X = (A[n].X + B[i].X) / 2 - 40 * cos(theta);
+				B[i].Y = (A[n].Y + B[i].Y) / 2 - 40 * sin(theta);
+			}
+			if (dist(A[i].X, A[i].Y, B[n].X, B[n].Y) < 80){
+				theta = atan2(A[i].Y - B[n].Y, A[i].X - B[n].X);
+				A[i].X = (A[i].X + B[n].X) / 2 + 40 * cos(theta);
+				A[i].Y = (A[i].Y + B[n].Y) / 2 + 40 * sin(theta);
+				B[n].X = (A[i].X + B[n].X) / 2 - 40 * cos(theta);
+				B[n].Y = (A[i].Y + B[n].Y) / 2 - 40 * sin(theta);
+			}
+			if (dist(B[n].X, B[n].Y, B[i].X, B[i].Y) < 80){
+				theta = atan2(B[n].Y - B[i].Y, B[n].X - B[i].X);
+				B[n].X = (B[n].X + B[i].X) / 2 + 40 * cos(theta);
+				B[n].Y = (B[n].Y + B[i].Y) / 2 + 40 * sin(theta);
+				B[i].X = (B[n].X + B[i].X) / 2 - 40 * cos(theta);
+				B[i].Y = (B[n].Y + B[i].Y) / 2 - 40 * sin(theta);
+			}
+		}
+	}
+	if (dist(A[PLAYER].X, A[PLAYER].Y, B[PLAYER].X, B[PLAYER].Y) < 80){
+		theta = atan2(A[PLAYER].Y - B[PLAYER].Y, A[PLAYER].X - B[PLAYER].X);
+		A[PLAYER].X = (A[PLAYER].X + B[PLAYER].X) / 2 + 40 * cos(theta);
+		A[PLAYER].Y = (A[PLAYER].Y + B[PLAYER].Y) / 2 + 40 * sin(theta);
+		B[PLAYER].X = (A[PLAYER].X + B[PLAYER].X) / 2 - 40 * cos(theta);
+		B[PLAYER].Y = (A[PLAYER].Y + B[PLAYER].Y) / 2 - 40 * sin(theta);
+	}
+}
+
 
 void debuger(int com){//デバッグ用のプリント関数　1:位置	2:mode	3:ang	4:cnd
 	switch (com){
@@ -306,7 +356,6 @@ struct P_data G_go(struct P_data play,int meter){		//ゴールへ進む関数(完了時pray
 	else if (play.team == 'B'){
 		side = 1;
 	}
-	printf("%d\n", play.re);
 	switch (play.re){
 	case 0:
 		play = turn_G(play);
@@ -1556,21 +1605,21 @@ void display(void){
 	player();
 	glPopMatrix();
 
-	glColor3f(1.0, 0, 0);		//A[2]
+	glColor3f(1.0, 0.3, 0);		//A[2]
 	glPushMatrix();
 	glTranslatef(A[2].X, A[2].Y, 0);
 	glRotatef(A[2].ang, 0, 0, 1.0);
 	player();
 	glPopMatrix();
 
-	glColor3f(1.0, 0, 0);		//A[3]
+	glColor3f(1.0, 0.6, 0);		//A[3]
 	glPushMatrix();
 	glTranslatef(A[3].X, A[3].Y, 0);
 	glRotatef(A[3].ang, 0, 0, 1.0);
 	player();
 	glPopMatrix();
 
-	glColor3f(1.0, 0, 0);		//A[4]
+	glColor3f(1.0, 0.9, 0);		//A[4]
 	glPushMatrix();
 	glTranslatef(A[4].X, A[4].Y, 0);
 	glRotatef(A[4].ang, 0, 0, 1.0);
@@ -1584,21 +1633,21 @@ void display(void){
 	player();
 	glPopMatrix();
 
-	glColor3f(0, 0, 1.0);		//B[2]
+	glColor3f(0, 0.3, 1.0);		//B[2]
 	glPushMatrix();
 	glTranslatef(B[2].X, B[2].Y, 0);
 	glRotatef(B[2].ang, 0, 0, 1.0);
 	player();
 	glPopMatrix();
 
-	glColor3f(0, 0, 1.0);		//B[3]
+	glColor3f(0, 0.6, 1.0);		//B[3]
 	glPushMatrix();
 	glTranslatef(B[3].X, B[3].Y, 0);
 	glRotatef(B[3].ang, 0, 0, 1.0);
 	player();
 	glPopMatrix();
 
-	glColor3f(0, 0, 1.0);		//B[4]
+	glColor3f(0, 0.9, 1.0);		//B[4]
 	glPushMatrix();
 	glTranslatef(B[4].X, B[4].Y, 0);
 	glRotatef(B[4].ang, 0, 0, 1.0);
@@ -1749,6 +1798,7 @@ void simu(void)
 
 		wall();
 		player_wall();
+		player_clash();
 		goal();
 
 		n = 1;
