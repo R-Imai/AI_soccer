@@ -1,13 +1,14 @@
 /*--------------------------------------------------------------------------------------------------------------*/
-/*	Name:		ArtificialIntelligence_soccer.c																*/
+/*	Name:		ArtificialIntelligence_soccer.c																	*/
 /*	Author:		Ryosuke.IMAI																					*/
 /*	Created:	2015 / 02 / 01																					*/
-/*	Last Date:	2015 / 08 / 06																					*/
-/*	Note:		ボールがラインを割った時の試合の流れとプレイヤー同士が重ならないような関数の作成が第一優先課題	*/
-/*				列挙型		Doxygen																				*/
+/*	Last Date:	2015 / 08 / 14																					*/
+/*	Note:		列挙型		Doxygen																				*/
 /*				どのタイミングでオブジェクト指向を入れるか悩み中←一回試合ができてから?							*/
 /*				ゴールのx座標に関連してボールが止まるバグがある。	同じ意味を持つ関数があるかも?				*/
+/*																												*/													
 /*	How to use:	クリック→その場所にボールがいってスタート	a→一時停止	s→再開									*/
+/*																												*/		
 /*--------------------------------------------------------------------------------------------------------------*/
 
 
@@ -39,13 +40,13 @@ struct B_data{			//ボールデータ構造体
 };
 
 double  x, y;
-double B_dist[11];
 int Atean_mode[11];
 int Ateam_strategy,Bteam_strategy;
 int n,A_div=0;
 int col = 0;
 int game=0;
 int goalflag;
+int score_A = 0, score_B = 0;
 
 
 struct P_data A[5], B[5];
@@ -215,7 +216,7 @@ void player_wall(void){//人にボールが当たったかの関数
 }
 
 void goal(void){//ゴール判定関数
-	if (l_g < ball.X&&ball.X<r_g&&ball.Y>A_g){
+	if (l_g < ball.X && ball.X < r_g && ball.Y > A_g){
 		A_init();
 		B_init();
 		goalflag = 1;
@@ -223,7 +224,7 @@ void goal(void){//ゴール判定関数
 	else if (l_g < ball.X&&ball.X < r_g&&ball.Y < B_g){
 		A_init();
 		B_init();
-		goalflag = 1;
+		goalflag = -1;
 	}
 }
 
@@ -275,6 +276,7 @@ void player_clash(void){
 		B[PLAYER].X = (A[PLAYER].X + B[PLAYER].X) / 2 - 40 * cos(theta);
 		B[PLAYER].Y = (A[PLAYER].Y + B[PLAYER].Y) / 2 - 40 * sin(theta);
 	}
+	printf("");
 }
 
 
@@ -633,12 +635,84 @@ void B_offence_init(void){//Bチームの攻撃初期位置関数
 }
 
 
+void A_divide(void){
+	double A_watch[5];//比較対象
+	double B_dist[11];
+	int k;
+
+	n = 1;
+	while (n <= PLAYER){
+		B_dist[n] = dist(A[n].X, A[n].Y, ball.X, ball.Y);	//ボールとの距離を測る
+		n++;
+	}
+	n = 1;
+	while (n <= PLAYER && A_div == 0){
+		if (fmin(fmin(fmin(B_dist[1], B_dist[2]), B_dist[3]), B_dist[4]) == B_dist[n]){	//人数が増えるときに書き直すところ
+			A[n].mode = 1;		//ボールに一番近い人にmode1を振り分ける。
+			Atean_mode[1] = n;
+		}
+		n++;
+	}
+	n = 1;
+	k = 1;
+
+
+	while (n <= 4 && A_div == 0){
+		if (n != Atean_mode[1]){
+			A_watch[k] = dist(A[n].X, A[n].Y, -500, -500);
+			k++;
+		}
+		n++;
+	}
+	n = 1;
+	while (n <= 4 && A_div == 0){
+		if (n != Atean_mode[1]){
+			if (fmin(fmin(A_watch[1], A_watch[2]), A_watch[3]) == dist(A[n].X, A[n].Y, -500, -500)){
+				A[n].mode = 3;
+				Atean_mode[3] = n;
+			}
+		}
+		n++;
+	}
+	n = 1;
+	k = 1;
+
+
+	while (n <= 4 && A_div == 0){
+		if (n != Atean_mode[1] && n != Atean_mode[3]){
+			A_watch[k] = dist(A[n].X, A[n].Y, 500, 100);
+			k++;
+		}
+		n++;
+	}
+	n = 1;
+	while (n <= 4 && A_div == 0){
+		if (n != Atean_mode[1] && n != Atean_mode[3]){
+			if (fmin(fmin(A_watch[1], A_watch[2]), A_watch[3]) == dist(A[n].X, A[n].Y, 500, 100)){
+				A[n].mode = 2;
+				Atean_mode[2] = n;
+			}
+		}
+		n++;
+	}
+	n = 1;
+	while (n <= 4 && A_div == 0){
+		if ((n != Atean_mode[1] && n != Atean_mode[2]) && n != Atean_mode[3]){
+			A[n].mode = 4;
+			Atean_mode[4] = n;
+		}
+		n++;
+	}
+	A_div = 1;
+
+}
+
 
 
 void A_strategy(void){	//Aチーム戦略関数(みんなにここにいろいろ書いてもらう)
-	double A_watch[5];//比較対象
+	double B_dist[11];
 	double ang;
-	int k,coner,coner_passer;
+	int coner,coner_passer;
 	double judge_max,judge_min;
 	if (Ateam_strategy == 0 || Ateam_strategy == 1){
 		if (ball.have >= 0){
@@ -649,78 +723,31 @@ void A_strategy(void){	//Aチーム戦略関数(みんなにここにいろいろ書いてもらう)
 		}
 	}
 
+	n = 1;
+	while (n <= PLAYER){
+		B_dist[n] = dist(A[n].X, A[n].Y, ball.X, ball.Y);	//ボールとの距離を測る
+		n++;
+	}
+
+	/*n = 1;
+	while (n <= PLAYER ){
+		if (fmin(fmin(fmin(B_dist[1], B_dist[2]), B_dist[3]), B_dist[4]) == B_dist[n]){	
+			A[n].mode = 1;		
+			Atean_mode[1] = n;
+		}
+		n++;
+	}*/
+
 	//printf("%d\n",Ateam_strategy);
 	switch (Ateam_strategy){
 	case 0://攻撃
-		n = 1;
-		while (n <= PLAYER){
-			B_dist[n] = dist(A[n].X, A[n].Y, ball.X, ball.Y);	//ボールとの距離を測る
-			n++;
-		}
-		n = 1;
-		while (n <= PLAYER && A_div == 0){
-			if (fmin(fmin(fmin(B_dist[1], B_dist[2]), B_dist[3]), B_dist[4]) == dist(A[n].X, A[n].Y, ball.X, ball.Y)){	//人数が増えるときに書き直すところ
-				A[n].mode = 1;		//ボールに一番近い人にmode1を振り分ける。
-				Atean_mode[1] = n;
-			}
-			n++;
-		}
-		n = 1;
-		k = 1;
 
 
-		while (n <= 4 && A_div == 0){
-			if (n != Atean_mode[1]){
-				A_watch[k] = dist(A[n].X, A[n].Y, -500, -500);
-				k++;
-			}
-			n++;
-		}
-		n = 1;
-		while (n <= 4 && A_div == 0){
-			if (n != Atean_mode[1]){
-				if (fmin(fmin(A_watch[1], A_watch[2]), A_watch[3]) == dist(A[n].X, A[n].Y, -500, -500)){
-					A[n].mode = 3;
-					Atean_mode[3] = n;
-				}
-			}
-			n++;
-		}
-		n = 1;
-		k = 1;
-
-
-		while (n <= 4 && A_div == 0){
-			if (n != Atean_mode[1] && n != Atean_mode[3]){
-				A_watch[k] = dist(A[n].X, A[n].Y, 500, 100);
-				k++;
-			}
-			n++;
-		}
-		n = 1;
-		while (n <= 4 && A_div == 0){
-			if (n != Atean_mode[1] && n != Atean_mode[3]){
-				if (fmin(fmin(A_watch[1], A_watch[2]), A_watch[3]) == dist(A[n].X, A[n].Y, 500, 100)){
-					A[n].mode = 2;
-					Atean_mode[2] = n;
-				}
-			}
-			n++;
-		}
-		n = 1;
-		while (n <= 4 && A_div == 0){
-			if ((n != Atean_mode[1] && n != Atean_mode[2]) && n != Atean_mode[3]){
-				A[n].mode = 4;
-				Atean_mode[4] = n;
-			}
-			n++;
-		}
-		A_div = 1;
+		A_divide();
 
 		n = 1;
 		while (n <= PLAYER){
 			if (A[n].mode == 1){
-				//A[n] = oneman(A[n]);
 				if ((A[n].cnd != 4 || A[n].cnd != 2) && A[n].cnd != 3){
 
 					A[n] = move(A[n], ball.X, ball.Y);
@@ -729,7 +756,6 @@ void A_strategy(void){	//Aチーム戦略関数(みんなにここにいろいろ書いてもらう)
 						A[n].cnd = 2;
 						A[n].re = 0;
 					}
-					//A[n] = find(A[n]);
 				}
 				if (A[n].cnd == 1){
 					A[n] = get(A[n]);
@@ -740,7 +766,6 @@ void A_strategy(void){	//Aチーム戦略関数(みんなにここにいろいろ書いてもらう)
 				}
 				if (A[n].cnd == 2){
 					A[n] = pass(A[n], A[Atean_mode[4]]);
-					//A[n] = turn(A[n], 45);
 					if (A[n].re == 1){
 						A[n].cnd = 3;
 						A[n].re = 0;
@@ -748,7 +773,6 @@ void A_strategy(void){	//Aチーム戦略関数(みんなにここにいろいろ書いてもらう)
 				}
 				if (A[n].cnd == 3){
 					A[n] = move(A[n], 0, 800);
-					//A[n] = shoot(A[n]);
 					if (A[n].re == 1){
 						A[n].cnd = 4;
 						A[n].re = 0;
@@ -803,7 +827,6 @@ void A_strategy(void){	//Aチーム戦略関数(みんなにここにいろいろ書いてもらう)
 
 			}
 			else if (A[n].mode == 3){
-				//A[n]=turn_P(A[n], A[3 - n]);
 				if (A[n].cnd == 0){
 					A[n] = move(A[n], -500, -500);
 					if (A[n].re == 1){
@@ -890,7 +913,7 @@ void A_strategy(void){	//Aチーム戦略関数(みんなにここにいろいろ書いてもらう)
 		//ang = ang + 360;
 		//}
 		if (A[Atean_mode[1]].cnd != 4){
-			A[Atean_mode[1]] = move(A[Atean_mode[1]], 0, 800);
+			A[Atean_mode[1]] = move(A[Atean_mode[1]], 0, 850);
 			if (A[Atean_mode[1]].re == 1){
 				A[Atean_mode[1]].re = 0;
 				A[Atean_mode[1]].cnd = 4;
@@ -1155,7 +1178,6 @@ void B_strategy(void){//Bチームの戦略関数(みんなにここにいろいろ書いてもらう)
 				B[2].re = 0;
 			}
 		}
-		printf("%d\n", B[2].cnd);
 		if (B[2].cnd == 1){
 			B[2] = turn_B(B[2]);
 			//B[2] = turn_P(B[2],B[1]);
@@ -1168,7 +1190,6 @@ void B_strategy(void){//Bチームの戦略関数(みんなにここにいろいろ書いてもらう)
 			//B[2] = pass(B[2], B[1]);
 			B[2] = turn_G(B[2]);
 			if (B[2].re == 1){
-				printf("NO!\n");
 				B[2].cnd = 3;
 				B[2].re = 0;
 			}
@@ -1328,6 +1349,7 @@ void A_lineover_init(void){//線を割った時のAチームの関数
 		A[4].X = 0;
 		A[4].Y = -400;
 		A[4].ang = -180 + atan2(A[4].Y - ball.Y, A[4].X - ball.X) * 180 / P;
+		A[4].cnd = 0;
 		Ateam_strategy = 4;
 		break;
 	case 3:
@@ -1512,11 +1534,22 @@ void wall(void){//壁判定の関数
 		B_lineover_init();
 		
 	}
-	else if (goalflag == 1){
-		if ((ball.Y > 940 || ball.Y<-940) || (ball.X>r_g || ball.X < l_g)){
+	else if (goalflag == 1||goalflag == -1){
+		if ((ball.Y > 940 || ball.Y<-940) && (ball.X<r_g || ball.X > l_g)){
+			//printf("wall;\n");
+			if (goalflag == 1){
+				score_B++;
+			}
+			else if (goalflag == -1){
+				score_A++;
+			}
 			ball.vx = 0;
 			ball.vy = 0;
+			ball.X = 0;
+			ball.Y = 0;
 			goalflag = 0;
+			printf("A:%d-%d:B\n", score_A, score_B);
+			glutIdleFunc(NULL);
 		}
 	}
 }
