@@ -1,15 +1,11 @@
-/*--------------------------------------------------------------------------------------------------------------*/
-/*	Name:		ArtificialIntelligence_soccer.c																	*/
-/*	Author:		Ryosuke.IMAI																					*/
-/*	Created:	2015 / 02 / 01																					*/
-/*	Last Date:	2015 / 08 / 14																					*/
-/*	Note:		—ñ‹“Œ^		Doxygen																				*/
-/*				‚Ç‚Ìƒ^ƒCƒ~ƒ“ƒO‚ÅƒIƒuƒWƒFƒNƒgwŒü‚ğ“ü‚ê‚é‚©”Y‚İ’†©ˆê‰ñ‡‚ª‚Å‚«‚Ä‚©‚ç?							*/
-/*				ƒS[ƒ‹‚ÌxÀ•W‚ÉŠÖ˜A‚µ‚Äƒ{[ƒ‹‚ª~‚Ü‚éƒoƒO‚ª‚ ‚éB	“¯‚¶ˆÓ–¡‚ğ‚ÂŠÖ”‚ª‚ ‚é‚©‚à?				*/
-/*																												*/													
-/*	How to use:	ƒNƒŠƒbƒN¨‚»‚ÌêŠ‚Éƒ{[ƒ‹‚ª‚¢‚Á‚ÄƒXƒ^[ƒg	a¨ˆê’â~	s¨ÄŠJ									*/
-/*																												*/		
-/*--------------------------------------------------------------------------------------------------------------*/
+/*--------------------------------------------------------------------------------------------------------------
+*	Name:		AIsoccer.cpp
+*	Author:		R.Imai
+*	Created:	2015 / 02 / 01
+*	Last Date:	2015 / 09 / 27
+*	Note:
+*
+*--------------------------------------------------------------------------------------------------------------*/
 
 
 
@@ -26,40 +22,48 @@
 #define r_g 160		//
 #define A_g 905		//
 #define B_g -905	//ƒS[ƒ‹ˆÊ’u
+#define RANGE 300
+#define X_MIN -625
+#define Y_MIN -905
+#define X_MAX 625
+#define Y_MAX 905
+
+#define PLAY_MODE 0	//‚±‚±‚ªA0:Bƒ`[ƒ€‚Ísampleƒ‚[ƒh,1:Bƒ`[ƒ€‚ÍBƒ‚[ƒh
+
 
 struct P_data{			//ƒvƒŒƒCƒ„[ƒf[ƒ^\‘¢‘Ì
-	double X, Y, ang, r_x, r_y, l_x, l_y, vx, vy, vang, v;
-	int mode, cnd, have,re;
+	double X, Y, ang, vx, vy, vang, v;
+	int mode, cnd, have, re;
 	char team;
 	int debug;
 };
 
 struct B_data{			//ƒ{[ƒ‹ƒf[ƒ^\‘¢‘Ì
-	double X, Y,vx,vy;
-	int cnd = 0, have, state;//have‚ª+¨A,-¨B
+	double X, Y, vx, vy;
+	int have, state;//have‚ª+¨A,-¨B
 };
 
 double  x, y;
 int Atean_mode[11];
-int Ateam_strategy,Bteam_strategy;
-int n,A_div=0;
+int Ateam_strategy, Bteam_strategy;
+int n, A_div = 0;
 int col = 0;
-int game=0;
+int game = 0;
 int goalflag;
 int score_A = 0, score_B = 0;
+int sw = 1;
 
+P_data A[5], B[5];
+B_data ball;
 
-struct P_data A[5], B[5];
-struct B_data ball;
-
-void circle(double x,double y,double r)//‰~‚ğ•`‚­ŠÖ”(x,y:’†SÀ•W,r:”¼Œa)
+void circle(double x, double y, double r)//‰~‚ğ•`‚­ŠÖ”(x,y:’†SÀ•W,r:”¼Œa)
 {
 	double s = P / 18;
 	int i;
 	i = 0;
 	glBegin(GL_POLYGON);
 	while (i < 35){
-		glVertex2d(x+r*cos(s*i), y+r*sin(s*i));
+		glVertex2d(x + r*cos(s*i), y + r*sin(s*i));
 		i = i + 1;
 	}
 	glEnd();
@@ -72,7 +76,7 @@ void player(void)//l‚ğ•`‚­ŠÖ”
 	i = 0;
 	glBegin(GL_POLYGON);
 	while (i < 31){
-		glVertex2d(40 * cos(s*(i+3)), 40 * sin(s*(i+3)));
+		glVertex2d(40 * cos(s*(i + 3)), 40 * sin(s*(i + 3)));
 		i = i + 1;
 	}
 	glEnd();
@@ -87,58 +91,6 @@ void player_set(void){
 
 
 
-
-void A_init(void){//Aƒ`[ƒ€‚Ì‰ŠúˆÊ’uŠÖ”
-	int n = 1;
-	A[1].X = 500;
-	A[1].Y = 200;
-	A[1].ang = -90;
-	A[2].X = -500;
-	A[2].Y = 200;
-	A[2].ang = -90;
-	A[3].X = 200;
-	A[3].Y = 600;
-	A[3].ang = -90;
-	A[4].X = -200;
-	A[4].Y = 600;
-	A[4].ang = -90;
-	while (n <= PLAYER){//”ƒRƒ}ƒ“ƒh‰Šú‰»
-		A[n].v = 0;
-		A[n].vang = 0;
-		A[n].cnd = 0;
-		A[n].mode = 0;
-		n = n + 1;
-	}
-	glutPostRedisplay();
-
-}
-
-void B_init(void){//Bƒ`[ƒ€‚Ì‰ŠúˆÊ’uŠÖ”
-	int n = 1;
-	B[1].X = 0;
-	B[1].Y = -400;
-	B[1].ang = 90;
-	B[2].X = 400;
-	B[2].Y = -200;
-	B[2].ang = 90;
-	B[3].X = -400;
-	B[3].Y = -200;
-	B[3].ang = 90;
-	B[4].X = 0;
-	B[4].Y = -700;
-	B[4].ang = 90;
-
-
-	while (n <= PLAYER){
-		B[n].v = 0;
-		B[n].vang = 0;
-		B[n].cnd = 0;
-		B[n].mode = 0;
-		n = n + 1;
-	}
-	glutPostRedisplay();
-}
-
 double dist(double x1, double y1, double x2, double y2){//(x1,y1)‚Æ(x2,y2)“ñ“_ŠÔ‚Ì‹——£‚ğ‘ª‚éŠÖ”
 	double re;
 	re = (x1 - x2)*(x1 - x2) + (y1 - y2)*(y1 - y2);
@@ -147,35 +99,49 @@ double dist(double x1, double y1, double x2, double y2){//(x1,y1)‚Æ(x2,y2)“ñ“_ŠÔ
 }
 
 void player_wall(void){//l‚Éƒ{[ƒ‹‚ª“–‚½‚Á‚½‚©‚ÌŠÖ”
-	double range,ang;
-	int judge,cnt=0,have=0;//judge”»’è	cnt“à‘¤‚É“ü‚Á‚½”
+	double range, ang, theta;
+	int judge, cnt = 0, have = 0;//judge”»’è	cnt“à‘¤‚É“ü‚Á‚½”
 	n = 1;
 	while (n <= PLAYER){
 		range = dist(A[n].X, A[n].Y, ball.X, ball.Y);
 		ang = A[n].ang - (atan2(-A[n].Y + ball.Y, -A[n].X + ball.X) * 180 / P);
 		if (ang > 180){ //Šp“x‚ğ-180`180‚É‚·‚é
-			ang=ang - 360;
-		}else if (ang < -180){
-			ang=ang + 360;
+			ang = ang - 360;
+		}
+		else if (ang < -180){
+			ang = ang + 360;
 		}
 		if (range < 56 && fabs(ang)>30){//ƒ{[ƒ‹‚Ì“à‘¤‚É“ü‚Á‚½‚Éƒ{[ƒ‹‚ğ‚Â‚©‚Í‚¶‚­‚©‚Ì”»’è
 			judge = 1;
 			cnt = cnt + 1;
-		}else if (range < 56 && fabs(ang) < 30){
+			theta = atan2(A[n].Y - ball.Y, A[n].X - ball.X);
+			A[n].X = (A[n].X + ball.X) / 2 + 28 * cos(theta);
+			A[n].Y = (A[n].Y + ball.Y) / 2 + 28 * sin(theta);
+			ball.X = (A[n].X + ball.X) / 2 - 28 * cos(theta);
+			ball.Y = (A[n].Y + ball.Y) / 2 - 28 * sin(theta);
+		}
+		else if (range < 56 && fabs(ang) < 30){
 			have = n;
 		}
 
 		range = dist(B[n].X, B[n].Y, ball.X, ball.Y);//Bƒ`[ƒ€‚à“¯—l							
 		ang = B[n].ang - (atan2(-B[n].Y + ball.Y, -B[n].X + ball.X) * 180 / P);
 		if (ang > 180){
-			ang=ang - 360;
-		}else if (ang < -180){
-			ang=ang + 360;
+			ang = ang - 360;
+		}
+		else if (ang < -180){
+			ang = ang + 360;
 		}
 		if (range < 56 && fabs(ang)>30){
 			judge = 1;
 			cnt = cnt + 1;
-		}else if (range < 56 && fabs(ang) < 30){
+			theta = atan2(B[n].Y - ball.Y, B[n].X - ball.X);
+			B[n].X = (B[n].X + ball.X) / 2 + 28 * cos(theta);
+			B[n].Y = (B[n].Y + ball.Y) / 2 + 28 * sin(theta);
+			ball.X = (B[n].X + ball.X) / 2 - 28 * cos(theta);
+			ball.Y = (B[n].Y + ball.Y) / 2 - 28 * sin(theta);
+		}
+		else if (range < 56 && fabs(ang) < 30){
 			have = -n;
 		}
 		n++;
@@ -210,23 +176,13 @@ void player_wall(void){//l‚Éƒ{[ƒ‹‚ª“–‚½‚Á‚½‚©‚ÌŠÖ”
 			B[-have].have = 1;
 			ball.have = -1;
 		}
-		
+
 	}
-	
+
+
 }
 
-void goal(void){//ƒS[ƒ‹”»’èŠÖ”
-	if (l_g < ball.X && ball.X < r_g && ball.Y > A_g){
-		A_init();
-		B_init();
-		goalflag = 1;
-	}
-	else if (l_g < ball.X&&ball.X < r_g&&ball.Y < B_g){
-		A_init();
-		B_init();
-		goalflag = -1;
-	}
-}
+
 
 void player_clash(void){
 	double theta;
@@ -238,7 +194,7 @@ void player_clash(void){
 			B[n].X = (A[n].X + B[n].X) / 2 - 40 * cos(theta);
 			B[n].Y = (A[n].Y + B[n].Y) / 2 - 40 * sin(theta);
 		}
-		for (int i = n+1; i < PLAYER+1; i++){
+		for (int i = n + 1; i < PLAYER + 1; i++){
 			if (dist(A[n].X, A[n].Y, A[i].X, A[i].Y) < 80){
 				theta = atan2(A[n].Y - A[i].Y, A[n].X - A[i].X);
 				A[n].X = (A[n].X + A[i].X) / 2 + 40 * cos(theta);
@@ -279,20 +235,19 @@ void player_clash(void){
 	printf("");
 }
 
-
 void debuger(int com){//ƒfƒoƒbƒO—p‚ÌƒvƒŠƒ“ƒgŠÖ”@1:ˆÊ’u	2:mode	3:ang	4:cnd
 	switch (com){
-		case 1:
-		printf("A[2]:%3.0f,%3.0f	A[4]:%3.0f,%3.0f	A[3]:%3.0f,%3.0f	A[1]:%3.0f,%3.0f\n", A[2].X, A[2].Y,A[4].X,A[4].Y, A[3].X, A[3].Y, A[1].X, A[1].Y);
+	case 1:
+		printf("A[2]:%3.0f,%3.0f	A[4]:%3.0f,%3.0f	A[3]:%3.0f,%3.0f	A[1]:%3.0f,%3.0f\n", A[2].X, A[2].Y, A[4].X, A[4].Y, A[3].X, A[3].Y, A[1].X, A[1].Y);
 		break;
-		case 2:
-			printf("A[2]:%d	A[4]:%d	A[3]:%d	A[1]:%d\n", A[2].mode,A[4].mode, A[3].mode, A[1].mode);
+	case 2:
+		printf("A[2]:%d	A[4]:%d	A[3]:%d	A[1]:%d\n", A[2].mode, A[4].mode, A[3].mode, A[1].mode);
 		break;
-		case 3:
-			printf("A[2]:%3.1f	A[4]:%3.1f	A[3]:%3.1f	A[1]:%3.1f\n", A[2].ang,A[4].ang, A[3].ang, A[1].ang);
+	case 3:
+		printf("A[2]:%3.1f	A[4]:%3.1f	A[3]:%3.1f	A[1]:%3.1f\n", A[2].ang, A[4].ang, A[3].ang, A[1].ang);
 		break;
-		case 4:
-			printf("A[2]:%d	A[4]:%d	A[3]:%d	A[1]:%d\n", A[2].cnd,A[4].cnd, A[3].cnd, A[1].cnd);
+	case 4:
+		printf("A[2]:%d	A[4]:%d	A[3]:%d	A[1]:%d\n", A[2].cnd, A[4].cnd, A[3].cnd, A[1].cnd);
 		break;
 
 	}
@@ -300,7 +255,7 @@ void debuger(int com){//ƒfƒoƒbƒO—p‚ÌƒvƒŠƒ“ƒgŠÖ”@1:ˆÊ’u	2:mode	3:ang	4:cnd
 }
 
 
-struct P_data turn(struct P_data play, double ang){//‰ñ“]ŠÖ”(ˆø”‚Ídeg)(Š®—¹pray.re‚ª1‚É‚È‚é)
+P_data turn(P_data play, double ang){//‰ñ“]ŠÖ”(ˆø”‚Ídeg)(Š®—¹pray.re‚ª1‚É‚È‚é)
 	double ang_path = play.ang - ang;
 	if (ang_path > 180){			//Šp“x‚Ì’²®
 		ang_path = ang_path - 360;
@@ -346,11 +301,10 @@ struct P_data turn_G(P_data play){//ƒS[ƒ‹‚ğŒü‚­ŠÖ”(Š®—¹pray.re‚ª1‚É‚È‚é)
 		side = 1;
 	}
 	play = turn(play, atan2(-play.Y + side * 905, -play.X)*(180 / P));
-
 	return play;
 }
 
-struct P_data G_go(struct P_data play,int meter){		//ƒS[ƒ‹‚Öi‚ŞŠÖ”(Š®—¹pray.re‚ª1‚É‚È‚é)@meter:ƒS[ƒ‹‚Æ‚Ì‹——£
+struct P_data G_go(struct P_data play, int meter){		//ƒS[ƒ‹‚Öi‚ŞŠÖ”(Š®—¹pray.re‚ª1‚É‚È‚é)@meter:ƒS[ƒ‹‚Æ‚Ì‹——£
 	int side;
 	if (play.team == 'A'){
 		side = -1;
@@ -378,7 +332,7 @@ struct P_data G_go(struct P_data play,int meter){		//ƒS[ƒ‹‚Öi‚ŞŠÖ”(Š®—¹pray
 		}
 		break;
 	}
-	
+
 	return play;
 }
 
@@ -394,7 +348,7 @@ struct P_data go(struct P_data play){//‚½‚¾i‚ŞŠÖ”(w’è“_‚Ímove(play,xx,yy)‚ğg
 }
 
 struct P_data turn_P(struct P_data turner, struct P_data waiter){//turner‚ªwaiter‚ğŒü‚­ŠÖ”(Š®—¹pray.re‚ª1‚É‚È‚é)
-	
+
 	turner = turn(turner, atan2(waiter.Y - turner.Y, waiter.X - turner.X)*(180 / P));
 
 	return turner;
@@ -404,9 +358,9 @@ struct P_data move(struct P_data play, double xx, double yy){//play‚ğ(xx,yy)‚ÖˆÚ
 
 	double ang;
 	ang = atan2(yy - play.Y, xx - play.X)*(180 / P);
-		play = turn(play, ang);
-		if (dist(play.X,play.Y,xx,yy)>2&&play.re==1){
-		play=go(play);
+	play = turn(play, ang);
+	if (dist(play.X, play.Y, xx, yy)>2 && play.re == 1){
+		play = go(play);
 		play.re = 0;
 	}
 	else if (dist(play.X, play.Y, xx, yy)<2){
@@ -417,11 +371,11 @@ struct P_data move(struct P_data play, double xx, double yy){//play‚ğ(xx,yy)‚ÖˆÚ
 
 
 
-struct P_data find(struct P_data play){	//ƒ{[ƒ‹”­Œ©ŠÖ”
+struct P_data find(struct P_data play){	//ƒ{[ƒ‹”­Œ©ŠÖ”(•s—v?)
 
 	double ang;
 
-	ang = atan2(ball.Y - play.Y, ball.X - play.X)*(180 / P) - play.ang ;
+	ang = atan2(ball.Y - play.Y, ball.X - play.X)*(180 / P) - play.ang;
 	if (ang >= 180)
 		ang = ang - 360;
 	else if (ang<-180)
@@ -435,35 +389,66 @@ struct P_data find(struct P_data play){	//ƒ{[ƒ‹”­Œ©ŠÖ”
 	if ((ang>0.1 || ang<-0.1)){
 		play.v = 0;
 		if (ang>0)
-		{			
-		play.vang =   0.02;
+		{
+			play.vang = 0.02;
 		}
 		else if (ang <= 0)
 		{
-			play.vang =  -0.02;
+			play.vang = -0.02;
 		}
-	}else{
+	}
+	else{
 		play.vang = 0.0;
-		play.re=1;
+		play.re = 1;
 	}
 	return play;
 
 }
 
+int A_check_pass(P_data play, double ang){
+	int direc = 0, re = 1;
+	double TAN = tan(ang*(P / 180));
+	double sec = -TAN*play.X + play.Y;
+	double a = 1 + (TAN*TAN), b = -1, c = -play.X*TAN + play.Y, d;
+	double range = 80;
+	if (fabs(ang) < 90){
+		direc = 1;
+	}
+	else{
+		direc = -1;
+	}
+
+	for (int i = 1; i <= PLAYER; i++){
+		d = fabs(TAN*B[i].X + b*B[i].Y + c) / sqrt(TAN*TAN + b*b);
+		//printf("%f\n", d);
+		/*b = -2 * B[i].X + 2 * sec*TAN - 2 * B[i].Y*TAN;
+		c = B[i].X*B[i].X + sec*sec - 2 * B[i].Y*sec + B[i].Y*B[i].Y - range*range;
+		d = b*b - (4 * a*c);
+		printf("%f	%f	%f	%f\n",TAN,b,c, d);*/
+		if (d <= range && play.X<direc*B[i].X){
+			//printf("%f	%f	%f	%f	%f\n",play.X,play.Y,ang,direc*B[i].X,B[i].Y);
+			re = 0;
+		}
+	}
+	//printf("\n");
+	return re;
+}
+
 
 struct P_data pass(struct P_data passer, struct P_data getter){//passer‚ªgetter‚Öƒ{[ƒ‹‚ğ‚¯‚éŠÖ”(Š®—¹pray.re‚ª1‚É‚È‚é)
-	double pass_ang,ang;
-	ang = atan2(getter.Y - ball.Y, getter.X - ball.X)*(180/P);
-	pass_ang = ang-passer.ang;
+	double pass_ang, ang;
+	ang = atan2(getter.Y - passer.Y, getter.X - passer.X)*(180 / P);
+	pass_ang = ang - passer.ang;
 	if (passer.have == 1){
 		if (fabs(pass_ang) < 30){
+			//printf("%d\n",check_pass(passer,ang));
 			ball.vx = 0.5*cos(ang*P / 180);
 			ball.vy = 0.5*sin(ang*P / 180);
 			passer.have = 0;
 			passer.re = 1;
 		}
 		else{
-			passer = turn_P(passer,getter);
+			passer = turn_P(passer, getter);
 		}
 	}
 
@@ -487,28 +472,11 @@ struct P_data turn_B(struct P_data play){//ƒ{[ƒ‹‚ÉŒü‚­ŠÖ”
 
 struct P_data get(struct P_data play){//ƒ{[ƒ‹‚ğæ‚è‚És‚­ŠÖ”(Š®—¹pray.re‚ª1‚É‚È‚é)
 
-	/*double x1, x2, y1, y2;
-
-	x1 = play.X + 40 * cos((P / 18)*(3) + (play.ang*(P / 180)));
-	y1 = play.Y + 40 * sin((P / 18)*(3) + (play.ang*(P / 180)));
-	x2 = play.X + 40 * cos((P / 18)*(34) + (play.ang*(P / 180)));
-	y2 = play.Y + 40 * sin((P / 18)*(34) + (play.ang*(P / 180)));
-
-	x = (1 / (pow(y2 - y1, 2) + pow(x2 - x1, 2)))*(((x2 - x1)*(y2 - y1)*ball.Y) + pow(x2 - x1, 2)*ball.X - (x2*y1 - x1*y2)*(y2 - y1));
-	y = ((y2 - y1) / (x2 - x1))*x + (y1*x2 - y2*x1) / (x2 - x1);*/
-	if (play.re == 0){
-		play = turn_B(play);
-		if (play.re = 1){
-			play.re = 3;
-		}
+	if (play.have == 0){
+		play = move(play, ball.X, ball.Y);
 	}
-
-	if (play.re == 3){
-		play.v = 0.1;
-		if (play.have == 1){
-			play.v = 0;
-			play.re = 1;
-		}
+	else if (play.have == 1){
+		play.re = 1;
 	}
 	return play;
 }
@@ -520,8 +488,8 @@ struct P_data shoot(struct P_data play){//ƒVƒ…[ƒg‚·‚éŠÖ”(‚½‚¾v‚¢‚Á‚«‚è‚¯‚é‚¾‚
 	if (play.have = 1){
 		play.v = 0;
 		play.vang = 0;
-		ball.vx = cos(play.ang*P/180);
-		ball.vy = sin(play.ang*P/180);
+		ball.vx = cos(play.ang*P / 180);
+		ball.vy = sin(play.ang*P / 180);
 		play.have = 0;
 		play.re = 1;
 	}
@@ -534,50 +502,48 @@ struct P_data shoot(struct P_data play){//ƒVƒ…[ƒg‚·‚éŠÖ”(‚½‚¾v‚¢‚Á‚«‚è‚¯‚é‚¾‚
 
 
 
-struct P_data oneman(struct P_data play){//ƒƒ“ƒ}ƒ“ƒvƒŒ[—p‚ÌŠÖ”(Aƒ`[ƒ€ê—p)
-	if (ball.cnd != 1){
+struct P_data oneman(struct P_data play){//ƒƒ“ƒ}ƒ“ƒvƒŒ[—p‚ÌŠÖ”
 
-		if (play.cnd==0){
-			play = find(play);
-			if (play.re == 1){
-				play.cnd = 1;
-				play.re = 0;
-			}
+	if (play.cnd == 0){
+		play = find(play);
+		if (play.re == 1){
+			play.cnd = 1;
+			play.re = 0;
 		}
-		if (play.cnd == 1){
-			play = get(play);
-			if (play.have==1){
-				play.cnd = 2;
-				play.re = 0;
-			}
+	}
+	if (play.cnd == 1){
+		play = get(play);
+		if (play.have == 1){
+			play.cnd = 2;
+			play.re = 0;
 		}
-		if (play.cnd == 2){
-			play = turn_G(play);
-			if (play.re == 1){
-				play.cnd = 3;
-				play.re = 0;
-			}
+	}
+	if (play.cnd == 2){
+		play = turn_G(play);
+		if (play.re == 1){
+			play.cnd = 3;
+			play.re = 0;
 		}
-		if (play.cnd == 3){
-			play = G_go(play,400);
-			if (play.re == 1){
-				play.cnd = 4;
-				play.re = 0;
-			}
+	}
+	if (play.cnd == 3){
+		play = G_go(play, 400);
+		if (play.re == 1){
+			play.cnd = 4;
+			play.re = 0;
 		}
-		if (play.cnd == 4){
-			play = shoot(play);
-			if (play.re == 1){
-				play.cnd = 0;
-				play.re = 0;
-			}
+	}
+	if (play.cnd == 4){
+		play = shoot(play);
+		if (play.re == 1){
+			play.cnd = 0;
+			play.re = 0;
 		}
 	}
 
 	return play;
 }
 
-void stop(char side){//ƒ`[ƒ€‘Sˆõ‚ğƒXƒgƒbƒv(ƒI[ƒo[ƒ[ƒh‚ÅŒÂ•Ê‚É‚à~‚Ü‚ê‚é‚æ‚¤‚É‚µ‚½)
+void stop(char side){//ƒ`[ƒ€‘Sˆõ‚ğƒXƒgƒbƒv
 	int n = 1;
 	if (side == 'A'){
 		while (n <= 4){
@@ -593,10 +559,230 @@ void stop(char side){//ƒ`[ƒ€‘Sˆõ‚ğƒXƒgƒbƒv(ƒI[ƒo[ƒ[ƒh‚ÅŒÂ•Ê‚É‚à~‚Ü‚ê‚é‚æ‚¤
 	}
 }
 
-void stop(struct P_data play){//ˆêl‚ğƒXƒgƒbƒv
+P_data stop(struct P_data play){//ˆêl‚ğƒXƒgƒbƒv
 	play.v = 0.0;
+	return play;
 }
 
+
+///////////////
+int A_minplayer(void){
+	int re;
+	double B_dist[PLAYER];
+	n = 1;
+	while (n <= PLAYER){
+		B_dist[n] = dist(A[n].X, A[n].Y, ball.X, ball.Y);	//ƒ{[ƒ‹‚Æ‚Ì‹——£‚ğ‘ª‚é
+		n++;
+	}
+	n = 1;
+	while (n <= PLAYER){
+		if (fmin(fmin(fmin(B_dist[1], B_dist[2]), B_dist[3]), B_dist[4]) == B_dist[n]){	//l”‚ª‘‚¦‚é‚Æ‚«‚É‘‚«’¼‚·‚Æ‚±‚ë
+			A[n].mode = 1;		//ƒ{[ƒ‹‚Éˆê”Ô‹ß‚¢l‚Émode1‚ğU‚è•ª‚¯‚éB
+			re = n;
+		}
+		n++;
+	}
+	return re;
+}
+
+void A_divide(void){
+	double A_watch[4];//”äŠr‘ÎÛ
+	double B_dist[11];
+	int k;
+
+	n = 1;
+	while (n < PLAYER){
+		B_dist[n] = dist(A[n].X, A[n].Y, ball.X, ball.Y);	//ƒ{[ƒ‹‚Æ‚Ì‹——£‚ğ‘ª‚é
+		n++;
+	}
+	n = 1;
+	while (n < PLAYER && A_div == 0){
+		if (fmin(fmin(B_dist[1], B_dist[2]), B_dist[3]) == B_dist[n]){	//l”‚ª‘‚¦‚é‚Æ‚«‚É‘‚«’¼‚·‚Æ‚±‚ë
+			A[n].mode = 1;		//ƒ{[ƒ‹‚Éˆê”Ô‹ß‚¢l‚Émode1‚ğU‚è•ª‚¯‚éB
+			Atean_mode[1] = n;
+		}
+		n++;
+	}
+	n = 1;
+	k = 1;
+
+
+	while (n < PLAYER && A_div == 0){
+		if (n != Atean_mode[1]){
+			A_watch[k] = dist(A[n].X, A[n].Y, -500, -500);
+			k++;
+		}
+		n++;
+	}
+	n = 1;
+	while (n < PLAYER && A_div == 0){
+		if (n != Atean_mode[1]){
+			if (fmin(A_watch[1], A_watch[2]) == dist(A[n].X, A[n].Y, -500, -500)){
+				A[n].mode = 3;
+				Atean_mode[3] = n;
+			}
+		}
+		n++;
+	}
+	n = 1;
+	k = 1;
+
+
+	while (n < PLAYER && A_div == 0){
+		if (n != Atean_mode[1] && n != Atean_mode[3]){
+			A_watch[k] = dist(A[n].X, A[n].Y, 500, 100);
+			k++;
+		}
+		n++;
+	}
+	n = 1;
+	while (n < PLAYER && A_div == 0){
+		if (n != Atean_mode[1] && n != Atean_mode[3]){
+			if (fmin(A_watch[1], A_watch[2]) == dist(A[n].X, A[n].Y, 500, 100)){
+				A[n].mode = 2;
+				Atean_mode[2] = n;
+			}
+		}
+		n++;
+	}
+	n = 1;
+	/*while (n < PLAYER && A_div == 0){
+	if ((n != Atean_mode[1] && n != Atean_mode[2]) && n != Atean_mode[3]){
+	A[n].mode = 4;
+	Atean_mode[4] = n;
+	}
+	n++;
+	}*/
+	A_div = 1;
+
+}
+
+
+int A_disideRoot(char axis, double start, double end){
+	int cnt = 0;
+	switch (axis)
+	{
+	case 'x':
+		for (int i = 1; i <= PLAYER; i++){
+			if (start < B[i].X&&B[i].X < end){
+				cnt++;
+			}
+		}
+		break;
+	case 'y':
+		for (int i = 1; i <= PLAYER; i++){
+			if (start < B[i].Y&&B[i].Y < end){
+				cnt++;
+			}
+		}
+		break;
+	}
+	return cnt;
+}
+
+int A_getpos(P_data play){
+	if (play.X < -216){
+		return -1;
+	}
+	else if (-216 < play.X&&play.X < 216){
+		return 0;
+	}
+	else if (216 < play.X){
+		return 1;
+	}
+}
+
+double calc_passang(P_data passer, P_data getter){
+	return atan2(getter.Y - passer.Y, getter.X - passer.X)*(180 / P);
+}
+
+
+void A_Keeper(void){
+	double A4_X = pow(10000 / (1 + pow((ball.Y - 905) / ball.X, 2)), 0.5);
+	if (ball.X < 0 && A4_X>0){
+		A4_X = -A4_X;
+	}
+	if (A[4].cnd == 0){
+		A[4] = move(A[4], A4_X, ((ball.Y - 905) / ball.X)*A4_X + 905);
+		if (A[4].re == 1){
+			A[4].cnd = 1;
+			A[4].re = 0;
+		}
+	}
+	if (A[4].cnd == 1){
+		A[4] = turn_B(A[4]);
+	}
+	if (A[4].have == 1){
+		A[4].cnd = 2;
+	}
+	if (A[4].cnd == 2){
+		A[4] = pass(A[4], A[Atean_mode[1]]);
+	}
+	if (dist(A[4].X, A[4].Y, A4_X, ((ball.Y - 905) / ball.X)*A4_X + 905) > 10 && A[4].have == 0 && A[4].cnd != 0){
+		A[4].cnd = 0;
+	}
+}
+/////////////////
+
+/////////////////
+
+void sampleB_Keeper(void){
+	double B4_X = pow(10000 / (1 + pow((ball.Y + 905) / ball.X, 2)), 0.5);
+	if (ball.X < 0 && B4_X>0){
+		B4_X = -B4_X;
+	}
+	if (B[4].cnd == 0){
+		B[4] = move(B[4], B4_X, ((ball.Y + 905) / ball.X)*B4_X - 905);
+		if (B[4].re == 1){
+			B[4].cnd = 1;
+			B[4].re = 0;
+		}
+	}
+	if (B[4].cnd == 1){
+		B[4] = turn_B(B[4]);
+	}
+	if (B[4].have == 1){
+		B[4].cnd = 2;
+	}
+	if (B[4].cnd == 2){
+		B[4] = pass(B[4], B[1]);
+	}
+	if (dist(B[4].X, B[4].Y, B4_X, ((ball.Y + 905) / ball.X)*B4_X - 905) > 10 && B[4].have == 0 && B[4].cnd != 0){
+		B[4].cnd = 0;
+	}
+}
+
+
+////////////////
+
+
+
+/*-----------------------------------------------Aƒ`[ƒ€‚Ì‚â‚Â‚Å‚·BQl‚É‚µ‚Ä‚­‚¾‚³‚¢-------------------------------------------------------*/
+
+void A_init(void){//Aƒ`[ƒ€‚Ì‰ŠúˆÊ’uŠÖ”
+	int n = 1;
+	A[1].X = 500;
+	A[1].Y = 200;
+	A[1].ang = -90;
+	A[2].X = -500;
+	A[2].Y = 200;
+	A[2].ang = -90;
+	A[3].X = 0;
+	A[3].Y = 400;
+	A[3].ang = -90;
+	A[4].X = 0;
+	A[4].Y = 800;
+	A[4].ang = -90;
+	while (n <= PLAYER){//”ƒRƒ}ƒ“ƒh‰Šú‰»
+		A[n].v = 0;
+		A[n].vang = 0;
+		A[n].cnd = 0;
+		A[n].mode = 0;
+		n = n + 1;
+	}
+	glutPostRedisplay();
+
+}
 
 void A_offence_init(void){//Aƒ`[ƒ€‚ÌUŒ‚‰ŠúˆÊ’uŠÖ”
 	A[1].X = -50;
@@ -616,317 +802,375 @@ void A_offence_init(void){//Aƒ`[ƒ€‚ÌUŒ‚‰ŠúˆÊ’uŠÖ”
 	A[4].ang = -90;
 }
 
-void B_offence_init(void){//Bƒ`[ƒ€‚ÌUŒ‚‰ŠúˆÊ’uŠÖ”
-	B[1].X = -50;
-	B[1].Y = -50;
-	B[1].ang = 45;
-
-	B[2].X = 100;
-	B[2].Y = -100;
-	B[2].ang = 135;
-
-	B[3].X = -400;
-	B[3].Y = -45;
-	B[3].ang = 90;
-
-	B[4].X = 0;
-	B[4].Y = -400;
-	B[4].ang = 90;
-}
-
-
-void A_divide(void){
-	double A_watch[5];//”äŠr‘ÎÛ
-	double B_dist[11];
-	int k;
-
-	n = 1;
-	while (n <= PLAYER){
-		B_dist[n] = dist(A[n].X, A[n].Y, ball.X, ball.Y);	//ƒ{[ƒ‹‚Æ‚Ì‹——£‚ğ‘ª‚é
-		n++;
-	}
-	n = 1;
-	while (n <= PLAYER && A_div == 0){
-		if (fmin(fmin(fmin(B_dist[1], B_dist[2]), B_dist[3]), B_dist[4]) == B_dist[n]){	//l”‚ª‘‚¦‚é‚Æ‚«‚É‘‚«’¼‚·‚Æ‚±‚ë
-			A[n].mode = 1;		//ƒ{[ƒ‹‚Éˆê”Ô‹ß‚¢l‚Émode1‚ğU‚è•ª‚¯‚éB
-			Atean_mode[1] = n;
-		}
-		n++;
-	}
-	n = 1;
-	k = 1;
-
-
-	while (n <= 4 && A_div == 0){
-		if (n != Atean_mode[1]){
-			A_watch[k] = dist(A[n].X, A[n].Y, -500, -500);
-			k++;
-		}
-		n++;
-	}
-	n = 1;
-	while (n <= 4 && A_div == 0){
-		if (n != Atean_mode[1]){
-			if (fmin(fmin(A_watch[1], A_watch[2]), A_watch[3]) == dist(A[n].X, A[n].Y, -500, -500)){
-				A[n].mode = 3;
-				Atean_mode[3] = n;
-			}
-		}
-		n++;
-	}
-	n = 1;
-	k = 1;
-
-
-	while (n <= 4 && A_div == 0){
-		if (n != Atean_mode[1] && n != Atean_mode[3]){
-			A_watch[k] = dist(A[n].X, A[n].Y, 500, 100);
-			k++;
-		}
-		n++;
-	}
-	n = 1;
-	while (n <= 4 && A_div == 0){
-		if (n != Atean_mode[1] && n != Atean_mode[3]){
-			if (fmin(fmin(A_watch[1], A_watch[2]), A_watch[3]) == dist(A[n].X, A[n].Y, 500, 100)){
-				A[n].mode = 2;
-				Atean_mode[2] = n;
-			}
-		}
-		n++;
-	}
-	n = 1;
-	while (n <= 4 && A_div == 0){
-		if ((n != Atean_mode[1] && n != Atean_mode[2]) && n != Atean_mode[3]){
-			A[n].mode = 4;
-			Atean_mode[4] = n;
-		}
-		n++;
-	}
-	A_div = 1;
-
-}
-
-
 
 void A_strategy(void){	//Aƒ`[ƒ€í—ªŠÖ”(‚İ‚ñ‚È‚É‚±‚±‚É‚¢‚ë‚¢‚ë‘‚¢‚Ä‚à‚ç‚¤)
-	double B_dist[11];
+	double B_dist[PLAYER + 1];
 	double ang;
-	int coner,coner_passer;
-	double judge_max,judge_min;
-	if (Ateam_strategy == 0 || Ateam_strategy == 1){
-		if (ball.have >= 0){
-			Ateam_strategy = 0;
-		}
-		else if (ball.have < 0){
-			Ateam_strategy = 1;
-		}
+	int coner, coner_passer;
+	int Ycnt[3] = { 0, 0, 0 };
+	int root;
+	int side;
+	int List[PLAYER];
+	double min_dist;
+	double judge_max, judge_min;
+	double A_pos[PLAYER + 1];
+	if ((Ateam_strategy == 0 || Ateam_strategy == 1) && ball.have >= 0){
+		Ateam_strategy = 0;
 	}
-
+	if (ball.have < 0){
+		Ateam_strategy = 1;
+	}
+	//printf("%d\n", Ateam_strategy);
 	n = 1;
 	while (n <= PLAYER){
 		B_dist[n] = dist(A[n].X, A[n].Y, ball.X, ball.Y);	//ƒ{[ƒ‹‚Æ‚Ì‹——£‚ğ‘ª‚é
 		n++;
 	}
 
-	/*n = 1;
-	while (n <= PLAYER ){
-		if (fmin(fmin(fmin(B_dist[1], B_dist[2]), B_dist[3]), B_dist[4]) == B_dist[n]){	
-			A[n].mode = 1;		
-			Atean_mode[1] = n;
-		}
-		n++;
-	}*/
 
+	A_Keeper();
 	//printf("%d\n",Ateam_strategy);
+
 	switch (Ateam_strategy){
 	case 0://UŒ‚
+		if (sw != 0){
+			A_divide();
+			sw = 0;
+		}
+		Ycnt[0] = A_disideRoot('x', -650.0, -216.0);
+		Ycnt[1] = A_disideRoot('x', -216.0, 216.0);
+		Ycnt[2] = A_disideRoot('x', 216.0, 650.0);
 
+		if (Ycnt[0] == fmin(fmin(Ycnt[0], double(Ycnt[1])), Ycnt[2])){
+			root = 1;
+		}
+		else if (Ycnt[1] == fmin(fmin(double(Ycnt[0]), Ycnt[1]), Ycnt[2])){
+			root = 2;
+		}
+		else if (Ycnt[2] == fmin(fmin(Ycnt[0], double(Ycnt[1])), Ycnt[2])){
+			root = 3;
+		}
 
-		A_divide();
+		for (int n = 1; n < PLAYER; n++){
+			switch (A[n].mode){
+			case 1:
+				//printf("%d\n", A[n].have);
+				switch (A[n].cnd){
+				case 0:
 
-		n = 1;
-		while (n <= PLAYER){
-			if (A[n].mode == 1){
-				if ((A[n].cnd != 4 || A[n].cnd != 2) && A[n].cnd != 3){
-
-					A[n] = move(A[n], ball.X, ball.Y);
-					if (A[n].have == 1){
-						A[n].v = 0;
-						A[n].cnd = 2;
-						A[n].re = 0;
-					}
-				}
-				if (A[n].cnd == 1){
 					A[n] = get(A[n]);
 					if (A[n].re == 1){
-						A[n].re = 0;
-						A[n].cnd = 2;
-					}
-				}
-				if (A[n].cnd == 2){
-					A[n] = pass(A[n], A[Atean_mode[4]]);
-					if (A[n].re == 1){
-						A[n].cnd = 3;
+						A[n].cnd = 1;
 						A[n].re = 0;
 					}
-				}
-				if (A[n].cnd == 3){
-					A[n] = move(A[n], 0, 800);
-					if (A[n].re == 1){
-						A[n].cnd = 4;
-						A[n].re = 0;
+					break;
+				case 1:
+					min_dist = 10000.0;
+					for (int i = 0; i < PLAYER; i++){
+						min_dist = fmin(min_dist, dist(A[n].X, A[n].Y, B[i].X, B[i].Y));
 					}
-
-				}
-				if (A[n].cnd == 4){
-					A[n] = turn(A[n], (atan2(ball.Y - A[n].Y, ball.X - A[n].X) * 180 / P));
-					if (A[n].have == 1){
-						A[n].cnd = 2;
+					if (min_dist>RANGE){
+						if (A[n].X != 0){
+							side = A[n].X / fabs(A[n].X);
+						}
+						A[n] = move(A[n], side * 400, -750);
 						if (A[n].re == 1){
+							A[n].cnd = 2;
 							A[n].re = 0;
 						}
 					}
-				}
-
-			}
-			else if (A[n].mode == 2){
-				if (A[n].cnd == 0){
-					A[n] = move(A[n], 500, 100);
-					if (A[n].re == 1){
-						A[n].cnd = 1;
-						A[n].re = 0;
+					else{
+						A[Atean_mode[2]].cnd = 1;
+						A[n] = pass(A[n], A[Atean_mode[2]]);
+						if (A[n].re == 1){
+							A[n].cnd = 4;
+							A[n].re = 0;
+						}
 					}
-				}
-
-				else if (A[n].cnd == 1){
-					A[n] = turn_P(A[n], A[Atean_mode[4]]);
-					if (A[n].have == 1){
-						A[n].cnd = 2;
-						A[n].re = 0;
-					}
-				}
-
-				else if (A[n].cnd == 2 && A[n].have == 1){
-
-					A[n] = turn_P(A[n], A[Atean_mode[3]]);
-					if (A[n].re == 1){
-						A[n].cnd = 3;
-						A[n].re = 0;
-					}
-				}
-
-				else if (A[n].cnd == 3 && A[n].have == 1){
+					break;
+				case 2:
+					A[Atean_mode[3]].cnd = 2;
 					A[n] = pass(A[n], A[Atean_mode[3]]);
 					if (A[n].re == 1){
-						A[n].re = 0;
-						A[n].cnd = 0;
-					}
-				}
-
-
-			}
-			else if (A[n].mode == 3){
-				if (A[n].cnd == 0){
-					A[n] = move(A[n], -500, -500);
-					if (A[n].re == 1){
-						A[n].cnd = 1;
-						A[n].re = 0;
-					}
-				}
-
-				else if (A[n].cnd == 1){
-					A[n] = turn_P(A[n], A[Atean_mode[2]]);
-					if (A[n].have == 1){
-						A[n].cnd = 2;
-						A[n].re = 0;
-					}
-				}
-
-				else if (A[n].cnd == 2 && A[n].have == 1){
-
-					A[n] = turn_G(A[n]);
-					if (A[n].re == 1){
 						A[n].cnd = 3;
 						A[n].re = 0;
 					}
-				}
+					break;
+				case 3:
 
-				else if (A[n].cnd == 3 && A[n].have == 1){
+					break;
+				case 4:
+					A[n] = move(A[n], -A_getpos(A[Atean_mode[2]]) * 434, A[Atean_mode[2]].Y - 300);
+					if (A[n].re == 1){
+						A[n].re = 0;
+					}
+					break;
+				case 5:
+					if (A[n].have == 1){
+						A[n].cnd = 6;
+					}
+					A[n] = turn_B(A[n]);
+					if (A[n].re == 1){
+						A[n].re = 0;
+					}
+
+					break;
+				case 6:
+					if (A[n].Y > -600){
+						min_dist = 10000.0;
+						for (int i = 0; i < PLAYER; i++){
+							min_dist = fmin(min_dist, dist(A[n].X, A[n].Y, B[i].X, B[i].Y));
+						}
+						if (min_dist>300){
+							if (A[n].X != 0){
+								side = A[n].X / fabs(A[n].X);
+							}
+							A[n] = move(A[n], side * 600, -700);
+							if (A[n].re == 1){
+								A[n].re = 0;
+							}
+						}
+						else{
+							A[Atean_mode[2]].cnd = 1;
+							A[n] = pass(A[n], A[Atean_mode[2]]);
+							if (A[n].re == 1){
+								A[n].cnd = 4;
+								A[n].re = 0;
+							}
+						}
+
+					}
+					else{
+						/*A[n]=turn_P(A[n], A[Atean_mode[3]]);
+						if (A[n].re == 1){
+						A[n].re = 0;
+						A[n].cnd = 3;
+						}*/
+						A[n] = turn_G(A[n]);
+						if (A[n].re == 1){
+							A[n].cnd = 2;
+							A[n].re = 0;
+						}
+					}
+					break;
+				case 7:
 					A[n] = shoot(A[n]);
 					if (A[n].re == 1){
 						A[n].re = 0;
+						A[n].cnd = 9;
 					}
+					break;
 				}
-			}
+				break;
 
-
-			else if (A[n].mode == 4){
-				if (A[n].cnd == 0){
-					A[n] = move(A[n], -400, 600);
+			case 2:
+				//printf("	%d\n", A[n].cnd);
+				switch (A[n].cnd){
+				case 0:
+					A[n] = move(A[n], -A_getpos(A[Atean_mode[1]]) * 434, A[Atean_mode[1]].Y - 300);
 					if (A[n].re == 1){
-						A[n].cnd = 1;
 						A[n].re = 0;
 					}
-				}
-				if (A[n].cnd == 1){
-					A[n] = turn_P(A[n], A[Atean_mode[1]]);
+					break;
+
+				case 1:
+					A[n] = turn_B(A[n]);
+					if (A[n].re == 1){
+						A[n].re = 0;
+					}
 					if (A[n].have == 1){
 						A[n].cnd = 2;
-						A[n].re = 0;
 					}
-				}
-				if (A[n].cnd == 2 && A[n].have == 1){
-					A[n] = turn_P(A[n], A[Atean_mode[2]]);
-					if (A[n].re == 1){
+					break;
+
+				case 2:
+
+					if (A[n].Y > -600){
+
+						min_dist = 10000.0;
+						for (int i = 0; i < PLAYER; i++){
+							min_dist = fmin(min_dist, dist(A[n].X, A[n].Y, B[i].X, B[i].Y));
+						}
+						if (min_dist>RANGE){
+							if (A[n].X != 0){
+								side = A[n].X / fabs(A[n].X);
+							}
+							A[n] = move(A[n], A_getpos(A[Atean_mode[2]]) * 600, -700);
+							if (A[n].re == 1){
+								A[n].cnd = 3;
+								A[n].re = 0;
+							}
+						}
+						else{
+							A[Atean_mode[1]].cnd = 5;
+							A[n] = pass(A[n], A[Atean_mode[1]]);
+							if (A[n].re == 1){
+								A[n].cnd = 0;
+								A[n].re = 0;
+							}
+						}
+					}
+					else{
+						/*A[n]=turn_P(A[n], A[Atean_mode[3]]);
+						if (A[n].re == 1){
+						A[n].re = 0;
+						A[n].cnd = 3;
+						}*/
+						/*A[n] = turn_G(A[n]);
+						if (A[n].re == 1){
 						A[n].cnd = 3;
 						A[n].re = 0;
+						}*/
+						A[Atean_mode[3]].cnd = 2;
+						A[n] = pass(A[n], A[Atean_mode[3]]);
+						if (A[n].re == 1){
+							A[n].cnd = 4;
+							A[n].re = 0;
+						}
 					}
-				}
-				if (A[n].cnd == 3 && A[n].have == 1){
-					A[n] = pass(A[n], A[Atean_mode[2]]);
+					break;
+				case 3:
+					A[n] = shoot(A[n]);
 					if (A[n].re == 1){
 						A[n].re = 0;
+						A[n].cnd = 4;
+					}
+					break;
+				}
+				break;
+
+			case 3:
+				switch (A[n].cnd){
+				case 0:
+					A[n] = move(A[n], -fabs(ball.X) / ball.X * r_g, -750);
+					if (A[n].re == 1){
+						A[n].re = 0;
+						A[n].cnd = 1;
+					}
+					break;
+
+				case 1:
+
+					if (-fabs(A[n].X) / A[n].X == -fabs(ball.X) / ball.X){
 						A[n].cnd = 0;
 					}
+				case 2:
+					A[n] = turn_B(A[n]);
+					if (A[n].re == 1){
+						A[n].re = 0;
+					}
+					if (A[n].have == 1){
+						A[n].cnd = 3;
+					}
+					break;
+
+				case 3:
+
+					/*if (A[n].Y > -600){
+					A[n] = move(A[n], (root - 2) * 600, -700);
+					if (A[n].re == 1){
+					A[n].re = 0;
+					}
+					}
+					else{*/
+					/*A[n]=turn_P(A[n], A[Atean_mode[3]]);
+					if (A[n].re == 1){
+					A[n].re = 0;
+					A[n].cnd = 3;
+					}*/
+					A[n] = turn_G(A[n]);
+					if (A[n].re == 1){
+						A[n].cnd = 4;
+						A[n].re = 0;
+						//}
+					}
+					break;
+				case 4:
+					A[n] = shoot(A[n]);
+					if (A[n].re == 1){
+						A[n].re = 0;
+						A[n].cnd = 5;
+					}
+					break;
 				}
+				break;
 			}
-			n++;
+
 		}
+
+
 		break;
 	case 1://ç”õ
+		if (sw != 1){
+			n = 1;
+			while (n <= PLAYER){
+				B_dist[n] = dist(A[n].X, A[n].Y, ball.X, ball.Y);	//ƒ{[ƒ‹‚Æ‚Ì‹——£‚ğ‘ª‚é
+				n++;
+			}
+			n = 1;
+			while (n <= PLAYER){
+				if (fmin(fmin(fmin(B_dist[1], B_dist[2]), B_dist[3]), B_dist[4]) == B_dist[n]){	//l”‚ª‘‚¦‚é‚Æ‚«‚É‘‚«’¼‚·‚Æ‚±‚ë
+					A[n].mode = 1;		//ƒ{[ƒ‹‚Éˆê”Ô‹ß‚¢l‚Émode1‚ğU‚è•ª‚¯‚éB
+					Atean_mode[1] = n;
+				}
+				n++;
+			}
 
-		n = 1;
-		while (n <= 4){
-			if (n != Atean_mode[1]){
+			A[Atean_mode[1]].mode = 1;
+			n = 1;
+			for (int i = 1; i < PLAYER; i++){
 				A[n].cnd = 0;
+				if (i != Atean_mode[1]){
+					List[n] = i;
+					n++;
+				}
 			}
-			n++;
-
+			if (A[List[1]].Y == fmax(A[List[1]].Y, A[List[2]].Y)){
+				Atean_mode[2] = List[1];
+				A[List[1]].mode = 2;
+				Atean_mode[3] = List[2];
+				A[Atean_mode[3]].mode = 3;
+			}
+			else{
+				Atean_mode[2] = List[2];
+				A[List[1]].mode = 2;
+				Atean_mode[3] = List[1];
+				A[Atean_mode[3]].mode = 3;
+			}
+			sw = 1;
 		}
+		n = 1;
 
-		ang = atan2(ball.Y - A[Atean_mode[1]].Y, ball.X - A[Atean_mode[1]].X) * 180 / P;
-		//if (ang >= 180){
-		//ang = ang - 360;
-		//}
-		//else if (ang <= -180){
-		//ang = ang + 360;
-		//}
-		if (A[Atean_mode[1]].cnd != 4){
-			A[Atean_mode[1]] = move(A[Atean_mode[1]], 0, 850);
-			if (A[Atean_mode[1]].re == 1){
-				A[Atean_mode[1]].re = 0;
-				A[Atean_mode[1]].cnd = 4;
+		for (int n = 1; n <= PLAYER; n++){
+			switch (A[n].mode){
+			case 1:
+				//printf("OK\n");
+				A[n] = move(A[n], ball.X, ball.Y);
+				if (A[n].re == 1){
+					A[n].re = 0;
+				}
+				break;
+			case 2:
+				A[n] = move(A[n], ball.X, ball.Y);
+				if (A[n].re == 1){
+					A[n].re = 0;
+				}
+				break;
+			case 3:
+				A[n] = move(A[n], -fabs(ball.X) / ball.X * 300, -400);
+				if (A[n].re == 1){
+					A[n].re = 0;
+				}
+				break;
 			}
 		}
-		else if (A[Atean_mode[1]].cnd == 4){
-			A[Atean_mode[1]] = turn_B(A[Atean_mode[1]]);
-		}
+
+
 		break;
 
 
 	case 2://ƒXƒ[ƒCƒ“
-		n = 2;
+
 		if (A[1].cnd == 0){
 			A[1] = pass(A[1], A[2]);
 			if (A[1].re == 1){
@@ -953,36 +1197,36 @@ void A_strategy(void){	//Aƒ`[ƒ€í—ªŠÖ”(‚İ‚ñ‚È‚É‚±‚±‚É‚¢‚ë‚¢‚ë‘‚¢‚Ä‚à‚ç‚¤)
 			}
 		}
 		/*while (n <= 4){
-			judge_max = (A[n].Y + 905) / A[n].X - 905 + 30 * sin((A[n].ang + 90)*P / 180);
-			judge_min = (A[n].Y + 905) / A[n].X - 905 - 30 * sin((A[n].ang + 90)*P / 180);
+		judge_max = (A[n].Y + 905) / A[n].X - 905 + 30 * sin((A[n].ang + 90)*P / 180);
+		judge_min = (A[n].Y + 905) / A[n].X - 905 - 30 * sin((A[n].ang + 90)*P / 180);
 
-			k = 1;
-			coner = 0;
-			while (k <= 4){
-				if ((judge_min < B[k].Y && B[k].Y < judge_max)){
-					coner = coner + 1;
-				}
-				k++;
-			}
-			if (coner == 4){
-				coner_passer = n;
-			}
-			n++;
+		k = 1;
+		coner = 0;
+		while (k <= 4){
+		if ((judge_min < B[k].Y && B[k].Y < judge_max)){
+		coner = coner + 1;
+		}
+		k++;
+		}
+		if (coner == 4){
+		coner_passer = n;
+		}
+		n++;
 		}
 		if (A[1].have == 0){
-			A[1].v = 0.1;
+		A[1].v = 0.1;
 		}
 
 		if (A[1].have == 1){
-			A[1].v = 0;
-			A[1] = pass(A[1], A[coner_passer]);
+		A[1].v = 0;
+		A[1] = pass(A[1], A[coner_passer]);
 		}*/
 
 		/*if (A[n].have == 1){
-			A[n] = turn_G(A[n]);
-			if (A[n].re == 1){
-				A[n] = shoot(A[n]);
-			}
+		A[n] = turn_G(A[n]);
+		if (A[n].re == 1){
+		A[n] = shoot(A[n]);
+		}
 		}*/
 		break;
 	case 3://ƒR[ƒi[ƒLƒbƒN
@@ -1013,24 +1257,23 @@ void A_strategy(void){	//Aƒ`[ƒ€í—ªŠÖ”(‚İ‚ñ‚È‚É‚±‚±‚É‚¢‚ë‚¢‚ë‘‚¢‚Ä‚à‚ç‚¤)
 		}
 		break;
 	case 4://ƒS[ƒ‹ƒLƒbƒN
-		if (A[1].cnd == 0){
-			A[1] = pass(A[1], A[3]);
-			if (A[1].re == 1){
-				A[1].re = 0;
-				A[1].cnd = 0;
+		if (A[4].cnd == 0){
+			A[4] = pass(A[4], A[3]);
+			if (A[4].re == 1){
+				A[4].re = 0;
 			}
 		}
 		if (A[3].have == 1){
 			switch (A[3].cnd){
 			case 0:
-				A[3] = turn_P(A[3],A[2]);
+				A[3] = turn_P(A[3], A[2]);
 				if (A[3].re == 1){
 					A[3].re = 0;
 					A[3].cnd = 1;
 				}
 				break;
 			case 1:
-				A[3] = pass(A[3],A[2]);
+				A[3] = pass(A[3], A[2]);
 				if (A[3].re == 1){
 					A[3].re = 0;
 					A[3].cnd = 0;
@@ -1057,20 +1300,20 @@ void A_strategy(void){	//Aƒ`[ƒ€í—ªŠÖ”(‚İ‚ñ‚È‚É‚±‚±‚É‚¢‚ë‚¢‚ë‘‚¢‚Ä‚à‚ç‚¤)
 				break;
 			}
 		}
-		if (A[4].have == 1){
-			switch (A[4].cnd){
+		if (A[1].have == 1){
+			switch (A[1].cnd){
 			case 0:
-				A[4] = turn_G(A[4]);
-				if (A[4].re == 1){
-					A[4].re = 0;
-					A[4].cnd = 1;
+				A[1] = turn_G(A[1]);
+				if (A[1].re == 1){
+					A[1].re = 0;
+					A[1].cnd = 1;
 				}
 				break;
 			case 1:
-				A[4] = shoot(A[4]);
-				if (A[4].re == 1){
-					A[4].re = 0;
-					A[4].cnd = 0;
+				A[1] = shoot(A[1]);
+				if (A[1].re == 1){
+					A[1].re = 0;
+					A[1].cnd = 0;
 				}
 				break;
 			}
@@ -1081,36 +1324,372 @@ void A_strategy(void){	//Aƒ`[ƒ€í—ªŠÖ”(‚İ‚ñ‚È‚É‚±‚±‚É‚¢‚ë‚¢‚ë‘‚¢‚Ä‚à‚ç‚¤)
 	case 6:
 		break;
 	}
-	
+
 }
 
-void B_Keeper(void){
-	double B4_X = pow(10000 / (1 + pow((ball.Y + 905) / ball.X, 2)), 0.5);
-	if (ball.X < 0 && B4_X>0){
-		B4_X = -B4_X;
+
+void A_lineover_init(void){//ü‚ğŠ„‚Á‚½‚ÌAƒ`[ƒ€‚ÌŠÖ”
+	int side;
+	if (ball.X > 0){
+		side = 1;
 	}
-	if (B[4].cnd == 0){
-		B[4] = move(B[4], B4_X, ((ball.Y + 905) / ball.X)*B4_X - 905);
-		if (B[4].re == 1){
-			B[4].cnd = 1;
-			B[4].re = 0;
+	else{
+		side = -1;
+	}
+
+	n = 1;
+	stop('A');
+	while (n <= 4){
+		A[n].cnd = 0;
+		A[n].mode = 0;
+		n++;
+	}
+
+	switch (ball.state)
+	{
+	case -3:
+		//‘Šèƒ`[ƒ€‚ÌƒR[ƒi[ƒLƒbƒN
+		break;
+	case -2:
+		//‘Šèƒ`[ƒ€‚ÌƒS[ƒ‹ƒLƒbƒN
+		break;
+	case -1:
+		//‘Šèƒ`[ƒ€‚ÌƒXƒ[ƒCƒ“
+		break;
+	case 1:
+		//©•ª‚Ìƒ`[ƒ€‚ÌƒXƒ[ƒCƒ“
+		ball.X = side * 630;
+		A[1].X = ball.X + side * 55;
+		A[1].Y = ball.Y;
+		A[1].ang = 90 + side * 90;
+		if (ball.Y > 800){//©ƒS[ƒ‹‚É‹ß‚¢
+			A[2].X = side * 800;
+			A[2].Y = ball.Y - 300;
+			A[2].ang = -180 + atan2(A[2].Y - ball.Y, A[2].X - ball.X) * 180 / P;
+			A[3].X = -side * 300;
+			A[3].Y = ball.Y - 150;
+			A[3].ang = -180 + atan2(A[3].Y - ball.Y, A[3].X - ball.X) * 180 / P;
+			A[4].X = 0;
+			A[4].Y = 800;
+			A[4].ang = -180 + atan2(A[4].Y - ball.Y, A[4].X - ball.X) * 180 / P;
+
 		}
+		else if (ball.Y<-500){//“GƒS[ƒ‹‚É‹ß‚¢
+			A[2].X = side * 200;
+			A[2].Y = ball.Y + 200;
+			A[2].ang = -180 + atan2(A[2].Y - ball.Y, A[2].X - ball.X) * 180 / P;
+			A[3].X = -side * 300;
+			A[3].Y = ball.Y + 50;
+			A[3].ang = -180 + atan2(A[3].Y - ball.Y, A[3].X - ball.X) * 180 / P;
+			A[4].X = 0;
+			A[4].Y = 300;
+			A[4].ang = -180 + atan2(A[4].Y - ball.Y, A[4].X - ball.X) * 180 / P;
+
+		}
+		else{//‚»‚Ì‘¼
+			A[2].X = side * 400;
+			A[2].Y = ball.Y + 100;
+			A[2].ang = -180 + atan2(A[2].Y - ball.Y, A[2].X - ball.X) * 180 / P;
+			A[3].X = side * 200;
+			A[3].Y = ball.Y - 400;
+			A[3].ang = -180 + atan2(A[3].Y - ball.Y, A[3].X - ball.X) * 180 / P;
+			A[4].X = -side * 300;
+			A[4].Y = ball.Y - 200;
+			A[4].ang = -180 + atan2(A[4].Y - ball.Y, A[4].X - ball.X) * 180 / P;
+		}
+		Ateam_strategy = 2;
+		break;
+	case 2:
+		//©•ª‚Ìƒ`[ƒ€‚ÌƒS[ƒ‹[ƒLƒbƒN
+		ball.X = 0;
+		ball.Y = 800;
+		A[4].X = 0;
+		A[4].Y = 855;
+		A[4].ang = -90;
+
+		A[2].X = 300;
+		A[2].Y = 600;
+		A[2].ang = -180 + atan2(A[2].Y - ball.Y, A[2].X - ball.X) * 180 / P;
+		A[3].X = -300;
+		A[3].Y = 600;
+		A[3].ang = -180 + atan2(A[3].Y - ball.Y, A[3].X - ball.X) * 180 / P;
+		A[1].X = 0;
+		A[1].Y = -400;
+		A[1].ang = -180 + atan2(A[4].Y - ball.Y, A[4].X - ball.X) * 180 / P;
+		A[1].cnd = 0;
+		Ateam_strategy = 4;
+		break;
+	case 3:
+		//©•ª‚Ìƒ`[ƒ€‚ÌƒR[ƒiƒLƒbƒN
+		ball.X = side * 630;
+		ball.Y = -905;
+		A[1].X = side * 670;
+		A[1].Y = -945;
+		A[1].ang = 45;
+		A[1].have = 1;
+
+		A[2].X = side * 400;
+		A[2].Y = -500;
+		A[2].ang = -180 + atan2(A[2].Y - ball.Y, A[2].X - ball.X) * 180 / P;
+
+		A[3].X = -side * 100;
+		A[3].Y = -550;
+		A[3].ang = -180 + atan2(A[3].Y - ball.Y, A[3].X - ball.X) * 180 / P;
+
+		A[4].X = side*(-400);
+		A[4].Y = -700;
+		A[4].ang = -180 + atan2(A[4].Y - ball.Y, A[4].X - ball.X) * 180 / P;
+		Ateam_strategy = 3;
+		break;
 	}
-	if (B[4].cnd == 1){
-		B[4] = turn_B(B[4]);
-	}
-	if (B[4].have == 1){
-		B[4].cnd = 2;
-	}
-	if (B[4].cnd == 2){
-		B[4] = pass(B[4], B[1]);
-	}
-	if (dist(B[4].X, B[4].Y, B4_X, ((ball.Y + 905) / ball.X)*B4_X - 905) > 10 && B[4].have == 0 && B[4].cnd != 0){
-		B[4].cnd = 0;
-	}
+	glutIdleFunc(NULL);
+
 }
 
-void B_strategy(void){//Bƒ`[ƒ€‚Ìí—ªŠÖ”(‚İ‚ñ‚È‚É‚±‚±‚É‚¢‚ë‚¢‚ë‘‚¢‚Ä‚à‚ç‚¤)
+/*---------------------------------------------------------------------------------------------------------------------------------------*/
+
+/*--------------------------------------------------‚±‚±‚É‘‚¢‚Ä‚­‚¾‚³‚¢-----------------------------------------------------------------*/
+
+void B_init(void){//Bƒ`[ƒ€‚Ì‰ŠúˆÊ’uŠÖ”
+	int n = 1;
+	//B[1].X = ;
+	//B[1].Y = ;
+	//B[1].ang = ;
+	//B[2].X = ;
+	//B[2].Y = ;
+	//B[2].ang = ;
+	//B[3].X = ;
+	//B[3].Y = ;
+	//B[3].ang = ;
+	//B[4].X = ;
+	//B[4].Y = ;
+	//B[4].ang = ;
+
+
+	/*while (n <= PLAYER){
+	B[n].v = 0;
+	B[n].vang = 0;
+	B[n].cnd = 0;
+	B[n].mode = 0;
+	n = n + 1;
+	}*/
+	glutPostRedisplay();
+}
+
+void B_offence_init(void){//Bƒ`[ƒ€‚ÌUŒ‚‰ŠúˆÊ’uŠÖ”
+	//B[1].X = ;
+	//B[1].Y = ;
+	//B[1].ang = ;
+
+	//B[2].X = ;
+	//B[2].Y = ;
+	//B[2].ang = ;
+
+	//B[3].X = ;
+	//B[3].Y = ;
+	//B[3].ang = ;
+
+	//B[4].X = ;
+	//B[4].Y = ;
+	//B[4].ang = ;
+}
+
+void B_strategy(void){
+
+}
+
+
+void B_lineover_init(void){//ü‚ğŠ„‚Á‚½‚ÌBƒ`[ƒ€‚ÌŠÖ”
+	int side;
+	if (ball.X > 0){
+		side = 1;
+	}
+	else{
+		side = -1;
+	}
+
+	n = 1;
+	while (n <= 4){
+		B[n].cnd = 0;
+		B[n].mode = 0;
+		n++;
+	}
+
+	switch (ball.state)
+	{
+	case -3:
+		//©•ª‚Ìƒ`[ƒ€‚ÌƒR[ƒi[ƒLƒbƒN
+		ball.X = side * 630;
+		ball.Y = 905;
+
+		B[1].X = side * 670;//ƒLƒbƒJ[
+		B[1].Y = 945;
+		B[1].ang = -90 - side * 45;
+
+		//B[2].X = ;
+		//B[2].Y = ;
+		//B[2].ang = ;
+
+		//B[3].X = ;
+		//B[3].Y = ;
+		//B[3].ang = ;
+
+		//B[4].X = ;
+		//B[4].Y = ;
+		//B[4].ang = ;
+		break;
+	case -2:
+		//©•ª‚Ìƒ`[ƒ€‚ÌƒS[ƒ‹ƒLƒbƒN
+		ball.X = 0;
+		ball.Y = -800;
+
+		B[4].X = 0;//ƒLƒbƒJ[(ƒL[ƒp[ƒ|ƒWƒVƒ‡ƒ“‚ª4‚Ìê‡)
+		B[4].Y = -855;
+		B[4].ang = 90;
+
+		//B[2].X = ;
+		//B[2].Y = ;
+		//B[2].ang = ;
+
+		//B[3].X = ;
+		//B[3].Y = ;
+		//B[3].ang = ;
+
+		//B[4].X = ;
+		//B[4].Y = ;
+		//B[4].ang = ;
+		break;
+	case -1:
+		//©•ª‚Ìƒ`[ƒ€‚ÌƒXƒ[ƒCƒ“
+		B[1].X = ball.X + side * 55;
+		B[1].Y = ball.Y;
+		B[1].ang = A[1].ang = 90 + side * 90;
+		//B[2].X = ;
+		//B[2].Y = ;
+		//B[2].ang = ;
+
+		//B[3].X = ;
+		//B[3].Y = ;
+		//B[3].ang = ;
+
+		//B[4].X = ;
+		//B[4].Y = ;
+		//B[4].ang = ;
+
+		break;
+	case 1:
+		//‘Šèƒ`[ƒ€‚ÌƒXƒ[ƒCƒ“
+
+		//B[1].X = ;
+		//B[1].Y = ;
+		//B[1].ang = ;
+
+		//B[2].X = ;
+		//B[2].Y = ;
+		//B[2].ang = ;
+
+		//B[3].X = ;
+		//B[3].Y = ;
+		//B[3].ang = ;
+
+		//B[4].X = ;
+		//B[4].Y = ;
+		//B[4].ang = ;
+		break;
+	case 2:
+		//‘Šèƒ`[ƒ€‚ÌƒS[ƒ‹ƒLƒbƒN
+
+		//B[1].X = ;
+		//B[1].Y = ;
+		//B[1].ang = ;
+
+		//B[2].X = ;
+		//B[2].Y = ;
+		//B[2].ang = ;
+
+		//B[3].X = ;
+		//B[3].Y = ;
+		//B[3].ang = ;
+
+		//B[4].X = ;
+		//B[4].Y = ;
+		//B[4].ang = ;
+		break;
+	case 3:
+		//‘Šèƒ`[ƒ€‚ÌƒR[ƒi[ƒLƒbƒN
+
+		//B[1].X = ;
+		//B[1].Y = ;
+		//B[1].ang = ;
+
+		//B[2].X = ;
+		//B[2].Y = ;
+		//B[2].ang = ;
+
+		//B[3].X = ;
+		//B[3].Y = ;
+		//B[3].ang = ;
+
+		//B[4].X = ;
+		//B[4].Y = ;
+		//B[4].ang = ;
+		break;
+	}
+
+
+}
+
+/*----------------------------------------------------------------------------------------------------------------------------------*/
+
+
+/*-------------------------------------------------ƒTƒ“ƒvƒ‹ƒ`[ƒ€‚Ì‚â‚Â‚Å‚·BQl‚É‚µ‚Ä‚­‚¾‚³‚¢-------------------------------------*/
+
+void sample_init(void){//Bƒ`[ƒ€‚Ì‰ŠúˆÊ’uŠÖ”
+	int n = 1;
+	B[1].X = -400;
+	B[1].Y = -500;
+	B[1].ang = 90;
+	B[2].X = 350;
+	B[2].Y = 100;
+	B[2].ang = 90;
+	B[3].X = -100;
+	B[3].Y = -450;
+	B[3].ang = 90;
+	B[4].X = 0;
+	B[4].Y = -800;
+	B[4].ang = 90;
+
+
+	while (n <= PLAYER){
+		B[n].v = 0;
+		B[n].vang = 0;
+		B[n].cnd = 0;
+		B[n].mode = 0;
+		n = n + 1;
+	}
+	glutPostRedisplay();
+}
+
+
+void sample_offence_init(void){//sampleƒ`[ƒ€‚ÌUŒ‚‰ŠúˆÊ’uŠÖ”
+	B[1].X = -50;
+	B[1].Y = -50;
+	B[1].ang = 45;
+
+	B[2].X = 100;
+	B[2].Y = -100;
+	B[2].ang = 135;
+
+	B[3].X = -400;
+	B[3].Y = -45;
+	B[3].ang = 90;
+
+	B[4].X = 0;
+	B[4].Y = -400;
+	B[4].ang = 90;
+}
+
+void sample_strategy(void){//sampleƒ`[ƒ€‚Ìí—ªŠÖ”
 	double B3_X = pow(240000 / (1 + pow((ball.Y + 905) / ball.X, 2)), 0.5);
 	if (ball.X < 0 && B3_X>0){
 		B3_X = -B3_X;
@@ -1129,25 +1708,25 @@ void B_strategy(void){//Bƒ`[ƒ€‚Ìí—ªŠÖ”(‚İ‚ñ‚È‚É‚±‚±‚É‚¢‚ë‚¢‚ë‘‚¢‚Ä‚à‚ç‚¤)
 	case 0:
 	case 1:
 		/*if (B[2].have == 0){
-			B[2] = move(B[2], ball.X, ball.Y);
+		B[2] = move(B[2], ball.X, ball.Y);
 		}
 		if (B[2].have == 1){
-			B[2].v = 0;
-			B[2]=turn(B[2], (atan2(905 - B[2].Y, -B[2].X)*180/P));
-			if (B[2].re == 1){
-			B[2].cnd = 1;
-			B[2].re = 0;
-			}
-			}
+		B[2].v = 0;
+		B[2]=turn(B[2], (atan2(905 - B[2].Y, -B[2].X)*180/P));
+		if (B[2].re == 1){
+		B[2].cnd = 1;
+		B[2].re = 0;
+		}
+		}
 		if (B[2].cnd == 1){
-			B[2] = shoot(B[2]);
-			if (B[2].re == 1){
-				B[2].cnd = 2;
-				B[2].re = 0;
-			}
+		B[2] = shoot(B[2]);
+		if (B[2].re == 1){
+		B[2].cnd = 2;
+		B[2].re = 0;
+		}
 		}*/
 
-		B_Keeper();
+		sampleB_Keeper();
 
 		if (B[1].have == 0){
 			B[1] = move(B[1], ball.X, ball.Y);
@@ -1198,19 +1777,19 @@ void B_strategy(void){//Bƒ`[ƒ€‚Ìí—ªŠÖ”(‚İ‚ñ‚È‚É‚±‚±‚É‚¢‚ë‚¢‚ë‘‚¢‚Ä‚à‚ç‚¤)
 				B[2] = shoot(B[2]);
 			}
 		}
-		if (B[2].have == 0&&B[2].cnd==2){
+		if (B[2].have == 0 && B[2].cnd == 2){
 			B[2].cnd = 0;
 		}
 		/*if (B[2].cnd == 2){
-			B[2] = pass(B[2], B[1]);
-			if (B[2].re == 1){
-				B[2].cnd = 0;
-				B[2].re = 0;
-			}
+		B[2] = pass(B[2], B[1]);
+		if (B[2].re == 1){
+		B[2].cnd = 0;
+		B[2].re = 0;
+		}
 		}
 		if (dist(B[2].X, B[2].Y, (A[Atean_mode[3]].X + A[Atean_mode[2]].X) / 2, (A[Atean_mode[3]].Y + A[Atean_mode[2]].Y) / 2) > 10 && B[2].have == 0 && B[2].cnd != 0){
-			B[2].cnd = 0;
-			B[2].re = 0;
+		B[2].cnd = 0;
+		B[2].re = 0;
 		}*/
 
 		if (ball.Y >= 0){
@@ -1257,129 +1836,10 @@ void B_strategy(void){//Bƒ`[ƒ€‚Ìí—ªŠÖ”(‚İ‚ñ‚È‚É‚±‚±‚É‚¢‚ë‚¢‚ë‘‚¢‚Ä‚à‚ç‚¤)
 		break;
 	}
 
-	
+
 }
 
-
-void A_lineover_init(void){//ü‚ğŠ„‚Á‚½‚ÌAƒ`[ƒ€‚ÌŠÖ”
-	int side;
-	if (ball.X > 0){
-		side = 1;
-	}
-	else{
-		side = -1;
-	}
-
-	n = 1;
-	stop('A');
-	while (n <= 4){
-		A[n].cnd = 0;
-		A[n].mode = 0;
-		n++;
-	}
-
-	switch (ball.state)
-	{
-	case -3:
-		//‘Šèƒ`[ƒ€‚ÌƒR[ƒi[ƒLƒbƒN
-		break;
-	case -2:
-		//‘Šèƒ`[ƒ€‚ÌƒS[ƒ‹ƒLƒbƒN
-		break;
-	case -1:
-		//‘Šèƒ`[ƒ€‚ÌƒXƒ[ƒCƒ“
-		break;
-	case 1:
-		//©•ª‚Ìƒ`[ƒ€‚ÌƒXƒ[ƒCƒ“
-		ball.X = side * 630;
-		A[1].X = ball.X + side * 55;
-		A[1].Y = ball.Y;
-		A[1].ang = 90 + side*90;
-		if (ball.Y > 800){//©ƒS[ƒ‹‚É‹ß‚¢
-			A[2].X = side * 800;
-			A[2].Y = ball.Y - 300;
-			A[2].ang = -180 + atan2(A[2].Y - ball.Y, A[2].X - ball.X) * 180 / P;
-			A[3].X = -side * 300;
-			A[3].Y = ball.Y - 150;
-			A[3].ang = -180 + atan2(A[3].Y - ball.Y, A[3].X - ball.X) * 180 / P;
-			A[4].X = 0;
-			A[4].Y = 800;
-			A[4].ang = -180 + atan2(A[4].Y - ball.Y, A[4].X - ball.X) * 180 / P;
-
-		}
-		else if(ball.Y<-500){//“GƒS[ƒ‹‚É‹ß‚¢
-			A[2].X = side*200;
-			A[2].Y = ball.Y + 200;
-			A[2].ang = -180 + atan2(A[2].Y - ball.Y, A[2].X - ball.X) * 180 / P;
-			A[3].X = -side * 300;
-			A[3].Y = ball.Y + 50;
-			A[3].ang = -180 + atan2(A[3].Y - ball.Y, A[3].X - ball.X) * 180 / P;
-			A[4].X = 0;
-			A[4].Y = 300;
-			A[4].ang = -180 + atan2(A[4].Y - ball.Y, A[4].X - ball.X) * 180 / P;
-
-		}
-		else{//‚»‚Ì‘¼
-			A[2].X = side * 400;
-			A[2].Y = ball.Y + 100;
-			A[2].ang = -180 + atan2(A[2].Y - ball.Y, A[2].X - ball.X) * 180 / P;
-			A[3].X = side * 200;
-			A[3].Y = ball.Y - 400;
-			A[3].ang = -180 + atan2(A[3].Y - ball.Y, A[3].X - ball.X) * 180 / P;
-			A[4].X = -side * 300;
-			A[4].Y = ball.Y - 200;
-			A[4].ang = -180 + atan2(A[4].Y - ball.Y, A[4].X - ball.X) * 180 / P;
-		}
-		Ateam_strategy = 2;
-		break;
-	case 2:
-		//©•ª‚Ìƒ`[ƒ€‚ÌƒS[ƒ‹[ƒLƒbƒN
-		ball.X = 0;
-		ball.Y = 800;
-		A[1].X = 0;
-		A[1].Y = 855;
-		A[1].ang = -90;
-
-		A[2].X = 300;
-		A[2].Y = 600;
-		A[2].ang = -180 + atan2(A[2].Y - ball.Y, A[2].X - ball.X) * 180 / P;
-		A[3].X = -300;
-		A[3].Y = 600;
-		A[3].ang = -180 + atan2(A[3].Y - ball.Y, A[3].X - ball.X) * 180 / P;
-		A[4].X = 0;
-		A[4].Y = -400;
-		A[4].ang = -180 + atan2(A[4].Y - ball.Y, A[4].X - ball.X) * 180 / P;
-		A[4].cnd = 0;
-		Ateam_strategy = 4;
-		break;
-	case 3:
-		//©•ª‚Ìƒ`[ƒ€‚ÌƒR[ƒiƒLƒbƒN
-		ball.X = side*630;
-		ball.Y = -905;
-		A[1].X = side * 670;
-		A[1].Y = -945;
-		A[1].ang = 45;
-		A[1].have = 1;
-
-		A[2].X = side * 400;
-		A[2].Y = -500;
-		A[2].ang = -180+atan2(A[2].Y-ball.Y, A[2].X - ball.X) * 180 / P ;
-
-		A[3].X = -side*100;
-		A[3].Y = -550;
-		A[3].ang = -180+atan2(A[3].Y - ball.Y, A[3].X - ball.X) * 180 / P;
-
-		A[4].X = side*(-400);
-		A[4].Y = -700;
-		A[4].ang = -180+atan2(A[4].Y - ball.Y, A[4].X - ball.X) * 180 / P;
-		Ateam_strategy = 3;
-		break;
-	}
-	glutIdleFunc(NULL);
-	
-}
-
-void B_lineover_init(void){//ü‚ğŠ„‚Á‚½‚ÌBƒ`[ƒ€‚ÌŠÖ”
+void sample_lineover_init(void){//ü‚ğŠ„‚Á‚½‚ÌBƒ`[ƒ€‚ÌŠÖ”
 	int side;
 	if (ball.X > 0){
 		side = 1;
@@ -1399,7 +1859,7 @@ void B_lineover_init(void){//ü‚ğŠ„‚Á‚½‚ÌBƒ`[ƒ€‚ÌŠÖ”
 	{
 	case -3:
 		//©•ª‚Ìƒ`[ƒ€‚ÌƒR[ƒi[ƒLƒbƒN
-		ball.X = side*630;
+		ball.X = side * 630;
 		ball.Y = 905;
 		B[1].X = side * 670;
 		B[1].Y = 945;
@@ -1503,10 +1963,38 @@ void B_lineover_init(void){//ü‚ğŠ„‚Á‚½‚ÌBƒ`[ƒ€‚ÌŠÖ”
 
 }
 
+
+/*---------------------------------------------------------------------------------------------------------------------------*/
+
+
+
+
+
+
+
+void goal(void){//ƒS[ƒ‹”»’èŠÖ”
+	if (l_g < ball.X && ball.X < r_g && ball.Y > A_g){
+		A_init();
+		B_init();
+		//sample_init()
+		goalflag = 1;
+	}
+	else if (l_g < ball.X&&ball.X < r_g&&ball.Y < B_g){
+		A_init();
+		if (PLAY_MODE){
+			B_init();
+		}
+		else if (!PLAY_MODE){
+			sample_init();
+		}
+		goalflag = -1;
+	}
+}
+
 void wall(void){//•Ç”»’è‚ÌŠÖ”
 	if (((ball.X>650 || ball.X<-650 || ball.Y>925 || ball.Y<-925)) && (ball.X<l_g || ball.X>r_g)){
 		//printf("wall;\n");
-		
+
 		if ((ball.X>650 || ball.X < -650) && (ball.Y<925 && ball.Y>-925)){
 			ball.state = ball.have*(-1);
 		}
@@ -1529,12 +2017,17 @@ void wall(void){//•Ç”»’è‚ÌŠÖ”
 
 		ball.vx = 0;
 		ball.vy = 0;
-		game=1;
+		game = 1;
 		A_lineover_init();
-		B_lineover_init();
-		
+		if (PLAY_MODE){
+			B_lineover_init();
+		}
+		else if (!PLAY_MODE){
+			sample_init();
+		}
+
 	}
-	else if (goalflag == 1||goalflag == -1){
+	else if (goalflag == 1 || goalflag == -1){
 		if ((ball.Y > 940 || ball.Y<-940) && (ball.X<r_g || ball.X > l_g)){
 			//printf("wall;\n");
 			if (goalflag == 1){
@@ -1624,17 +2117,118 @@ void ground(void){	//ƒOƒ‰ƒ“ƒh•`‰æŠÖ”
 
 }
 
+void debug_disp(){
+	double s = P / 18;
+	int i;
+	i = 0;
+	glColor3f(1.0, 0, 0);
+	glPushMatrix();
+	glTranslatef(A[1].X, A[1].Y, 0);
+	glBegin(GL_LINES);
+	while (i < 35){
+		glVertex2d(x + RANGE * cos(s*i), y + RANGE * sin(s*i));
+		i = i + 1;
+	}
+	glEnd();
+	glPopMatrix();
+
+	i = 0;
+	glColor3f(1.0, 0.3, 0);
+	glPushMatrix();
+	glTranslatef(A[2].X, A[2].Y, 0);
+	glBegin(GL_LINES);
+	while (i < 35){
+		glVertex2d(x + RANGE * cos(s*i), y + RANGE * sin(s*i));
+		i = i + 1;
+	}
+	glEnd();
+	glPopMatrix();
+
+	i = 0;
+	glColor3f(1.0, 0.6, 0);
+	glPushMatrix();
+	glTranslatef(A[3].X, A[3].Y, 0);
+	glBegin(GL_LINES);
+	while (i < 35){
+		glVertex2d(x + RANGE * cos(s*i), y + RANGE * sin(s*i));
+		i = i + 1;
+	}
+	glEnd();
+	glPopMatrix();
+
+	i = 0;
+	glColor3f(1.0, 0.9, 0);
+	glPushMatrix();
+	glTranslatef(A[4].X, A[4].Y, 0);
+	glBegin(GL_LINES);
+	while (i < 35){
+		glVertex2d(x + RANGE * cos(s*i), y + RANGE * sin(s*i));
+		i = i + 1;
+	}
+	glEnd();
+	glPopMatrix();
+
+	i = 0;
+	glColor3f(0, 0, 1.0);
+	glPushMatrix();
+	glTranslatef(B[1].X, B[1].Y, 0);
+	glBegin(GL_LINES);
+	while (i < 35){
+		glVertex2d(x + 80 * cos(s*i), y + 80 * sin(s*i));
+		i = i + 1;
+	}
+	glEnd();
+	glPopMatrix();
+
+	i = 0;
+	glColor3f(0, 0.3, 1.0);
+	glPushMatrix();
+	glTranslatef(B[2].X, B[2].Y, 0);
+	glBegin(GL_LINES);
+	while (i < 35){
+		glVertex2d(x + 80 * cos(s*i), y + 80 * sin(s*i));
+		i = i + 1;
+	}
+	glEnd();
+	glPopMatrix();
+
+	i = 0;
+	glColor3f(0, 0.6, 1.0);
+	glPushMatrix();
+	glTranslatef(B[3].X, B[3].Y, 0);
+	glBegin(GL_LINES);
+	while (i < 35){
+		glVertex2d(x + 80 * cos(s*i), y + 80 * sin(s*i));
+		i = i + 1;
+	}
+	glEnd();
+	glPopMatrix();
+
+	i = 0;
+	glColor3f(0, 0.9, 1.0);
+	glPushMatrix();
+	glTranslatef(B[4].X, B[4].Y, 0);
+	glBegin(GL_LINES);
+	while (i < 35){
+		glVertex2d(x + 80 * cos(s*i), y + 80 * sin(s*i));
+		i = i + 1;
+	}
+	glEnd();
+	glPopMatrix();
+}
+
 
 void display(void){
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	ground();
 
+	debug_disp();
 
 	glColor3f(1.0, 0, 0);		//A[1]
 	glPushMatrix();
-	glTranslatef(A[1].X, A[1].Y, 0);				
-	glRotatef(A[1].ang, 0, 0, 1.0);					
+	glTranslatef(A[1].X, A[1].Y, 0);
+	glRotatef(A[1].ang, 0, 0, 1.0);
 	player();
 	glPopMatrix();
 
@@ -1688,10 +2282,10 @@ void display(void){
 	glPopMatrix();
 
 
-	glColor3f(0, 0, 0);		
+	glColor3f(0, 0, 0);
 	glPushMatrix();
 	glTranslatef(ball.X, ball.Y, 0);
-	circle(0.0,0.0,20);
+	circle(0.0, 0.0, 20);
 	glPopMatrix();
 
 	glColor3f(0.5, 0.5, 1.0);
@@ -1725,78 +2319,9 @@ void display(void){
 
 void simu(void)
 {
-	/*double A_watch[5];//”äŠr‘ÎÛ
-	int k;
-	debuger(4);
-	//printf("%f	%f\n", ball.X, ball.Y);
-
-	n = 1;
-	while (n <= PLAYER){
-		B_dist[n] = dist(A[n].X, A[n].Y, ball.X, ball.Y);	//ƒ{[ƒ‹‚Æ‚Ì‹——£‚ğ‘ª‚é
-		n++;
-	}
-	n = 1;
-	while (n <= PLAYER && A_div == 0){
-		if (fmin(fmin(fmin(B_dist[1], B_dist[2]), B_dist[3]), B_dist[4]) == dist(A[n].X, A[n].Y, ball.X, ball.Y)){	//l”‚ª‘‚¦‚é‚Æ‚«‚É‘‚«’¼‚·‚Æ‚±‚ë
-			A[n].mode = 1;		//ƒ{[ƒ‹‚Éˆê”Ô‹ß‚¢l‚Émode1‚ğU‚è•ª‚¯‚éB
-			Atean_mode[1] = n;	
-		}
-		n++;
-	}
-	n = 1;
-	k = 1;
 
 
-	while (n <= 4 && A_div == 0){
-		if (n != Atean_mode[1]){
-			A_watch[k] = dist(A[n].X, A[n].Y, -500, -500);
-			k++;
-		}
-		n++;
-	}
-	n = 1;
-	while (n <= 4 && A_div == 0){
-		if (n != Atean_mode[1]){
-			if (fmin(fmin(A_watch[1], A_watch[2]), A_watch[3]) == dist(A[n].X, A[n].Y, -500, -500)){
-				A[n].mode = 3;
-				Atean_mode[3] = n;
-			}
-		}
-		n++;
-	}
-	n = 1;
-	k = 1;
 
-
-	while (n <= 4 && A_div == 0){
-		if (n != Atean_mode[1] && n != Atean_mode[3]){
-			A_watch[k] = dist(A[n].X, A[n].Y, 500, 100);
-			k++;
-		}
-		n++;
-	}
-	n = 1;
-	while (n <= 4 && A_div == 0){
-		if (n != Atean_mode[1] && n != Atean_mode[3]){
-			if (fmin(fmin(A_watch[1], A_watch[2]), A_watch[3]) == dist(A[n].X, A[n].Y, 500, 100)){
-				A[n].mode = 2;
-				Atean_mode[2] = n;
-			}
-		}
-		n++;
-	}
-	n = 1;
-	while (n <= 4&&A_div==0){
-		if ((n != Atean_mode[1] && n != Atean_mode[2]) && n != Atean_mode[3]){
-			A[n].mode = 4;
-			Atean_mode[4] = n;
-		}
-		n++;
-	}
-	A_div = 1;*/
-	
-
-	
 	n = 1;
 	while (n <= PLAYER){
 
@@ -1805,7 +2330,7 @@ void simu(void)
 			A[n].ang = A[n].ang - 360;
 		else if (A[n].ang < -180)
 			A[n].ang = A[n].ang + 360;
-		
+
 		B[n].ang = B[n].ang + B[n].vang;
 		if (B[n].ang >= 180)
 			B[n].ang = B[n].ang - 360;
@@ -1825,164 +2350,27 @@ void simu(void)
 		n++;
 	}
 
-		ball.X = ball.X + ball.vx;
-		ball.Y = ball.Y + ball.vy;
-		
-
-		wall();
-		player_wall();
-		player_clash();
-		goal();
-
-		n = 1;
-		
-			A_strategy();
-			B_strategy();
-		//A[1] = oneman(A[1]);
-		/*while (n <= PLAYER){
-			if (A[n].mode == 1){
-				//printf("%d\n", A[n].cnd);
-				//A[n] = oneman(A[n]);
-				if ((A[n].cnd != 4 || A[n].cnd != 2) && A[n].cnd != 3){
-					A[n] = find(A[n]);
-				}
-				if (A[n].cnd == 1){
-					A[n] = get(A[n]);
-				}
-				if (A[n].cnd == 2){
-					A[n] = pass(A[n], A[Atean_mode[4]]);
-					if (A[n].re == 1){
-						//A[n].cnd = 3;
-						A[n].re = 0;
-					}
-				}
-				if (A[n].cnd == 3){
-					A[n].vang = 0;
-					A[n].v = 0;
-				}
-
-			}
-			else if (A[n].mode == 2){
-				//printf("%d", A[n].cnd);
-				//printf("%d\n", A[n].have);
-				//A[n]=turn_P(A[n], A[3 - n]);
-				//if (A[n].cnd == 0){
-				if (A[n].cnd == 0){
-					A[n] = move(A[n], 500, 100);
-					//printf("%d\n", A[n].re);
-					if (A[n].re == 1){
-						A[n].cnd = 1;
-						A[n].re = 0;
-						//printf("OK!\n");
-					}
-				}
-
-				else if (A[n].cnd == 1){
-					A[n] = turn_P(A[n], A[Atean_mode[4]]);
-					if (A[n].have == 1){
-						A[n].cnd = 2;
-						A[n].re = 0;
-					}
-				}
-
-				else if (A[n].cnd == 2 && A[n].have == 1){
-
-					A[n] = turn_P(A[n], A[Atean_mode[3]]);
-					if (A[n].re == 1){
-						//glutIdleFunc(NULL);
-						A[n].cnd = 3;
-						A[n].re = 0;
-					}
-				}
-
-				else if (A[n].cnd == 3 && A[n].have == 1){
-					A[n] = pass(A[n], A[Atean_mode[3]]);
-				}
+	ball.X = ball.X + ball.vx;
+	ball.Y = ball.Y + ball.vy;
 
 
-			}
-			else if (A[n].mode == 3){
-				//printf("%d", A[n].cnd);
-				//printf("%d\n", A[n].have);
-				//A[n]=turn_P(A[n], A[3 - n]);
-				//if (A[n].cnd == 0){
-				if (A[n].cnd == 0){
-					A[n] = move(A[n], -500, -500);
-					//printf("%d\n", A[n].re);
-					if (A[n].re == 1){
-						A[n].cnd = 1;
-						A[n].re = 0;
-						//printf("OK!\n");
-					}
-				}
+	wall();
+	player_wall();
+	player_clash();
+	goal();
 
-				else if (A[n].cnd == 1){
-					A[n] = turn_P(A[n], A[Atean_mode[2]]);
-					if (A[n].have == 1){
-						A[n].cnd = 2;
-						A[n].re = 0;
-					}
-				}
+	n = 1;
 
-				else if (A[n].cnd == 2 && A[n].have == 1){
+	A_strategy();
+	if (PLAY_MODE){
+		B_strategy();
+	}
+	else if (!PLAY_MODE){
+		sample_strategy();
+	}
+	//A[1] = oneman(A[1]);
+	glutPostRedisplay();//Ä•`‰æ
 
-					A[n] = turn_G(A[n]);
-					if (A[n].re == 1){
-						//glutIdleFunc(NULL);
-						A[n].cnd = 3;
-						A[n].re = 0;
-					}
-				}
-
-				else if (A[n].cnd == 3 && A[n].have == 1){
-					A[n] = shoot(A[n]);
-				}
-			}
-
-
-			else if (A[n].mode == 4){
-				if (A[n].cnd == 0){
-					A[n] = move(A[n], -400, 600);
-					if (A[n].re == 1){
-						A[n].cnd = 1;
-						A[n].re = 0;
-					}
-				}
-				if (A[n].cnd == 1){
-					A[n] = turn_P(A[n], A[Atean_mode[1]]);
-					if (A[n].have == 1){
-						A[n].cnd = 2;
-						A[n].re = 0;
-					}
-				}
-				if (A[n].cnd == 2 && A[n].have == 1){
-					A[n] = turn_P(A[n], A[Atean_mode[2]]);
-					if (A[n].re == 1){
-						A[n].cnd = 3;
-						A[n].re = 0;
-					}
-				}
-				if (A[n].cnd == 3 && A[n].have == 1){
-					A[n] = pass(A[n], A[Atean_mode[2]]);
-				}
-			}
-
-
-			//printf("%d		\n", judge);
-			//printf("%f	%f	%f	%f\n", A[1].X, A[1].Y, A[2].X, A[2].Y);
-			//printf("%f,%f	%d\n", ball.vx, ball.vy,judge);
-
-
-
-
-
-
-
-			//printf("%f,		%f,		\n", A[1].ang, atan2(A[2].Y - A[1].Y, A[2].X - A[1].X)*(180 / P));
-			n++;
-		}*/
-		glutPostRedisplay();//Ä•`‰æ
-	
 }
 
 
@@ -1992,8 +2380,12 @@ void init(void)
 	glClearColor(g_R, g_G, g_B, 0.0);			//ƒEƒBƒ“ƒhƒE‘S‘Ì‚ÌF
 	glShadeModel(GL_FLAT);					//”Z’W
 	A_init();
-	B_init();
-	
+	if (PLAY_MODE){
+		B_init();
+	}
+	else if (!PLAY_MODE){
+		sample_init();
+	}
 }
 
 
@@ -2022,21 +2414,26 @@ void mouse(int button, int state, int x, int y){		//(ƒ{ƒ^ƒ“,‰Ÿ‚µ‚½‚©—£‚µ‚½‚©,ƒ}ƒ
 			A_div = 0;
 			Ateam_strategy = 0;
 			ball.have = 0;
+			sw = 1;
 			while (n <= PLAYER){
 				A[n].cnd = 0;
 				A[n].mode = 0;
 				A[n].re = 0;
 				A[n].vang = 0;
 				A[n].have = 0;
+				A[n].vx = 0;
+				A[n].vy = 0;
 
 				B[n].cnd = 0;
 				B[n].mode = 0;
 				B[n].re = 0;
 				B[n].vang = 0;
 				B[n].have = 0;
+				B[n].vx = 0;
+				B[n].vy = 0;
 				n++;
 			}
-			ball.cnd = 0;
+
 		}
 
 		break;
