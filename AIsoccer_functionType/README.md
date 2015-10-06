@@ -6,7 +6,7 @@
 ***
 このプログラムでは下図のような座標系をとり、よく使用されると思われる座標は、「#define」により以下の文字に同等の値を持たせました。<br>
 赤がA チーム青がB チームです。
-![grand_info](https://www.dropbox.com/s/czk13c1ix0noh6p/grand_info1.png?dl=0 "画面説明")
+![grand_info](https://github.com/R-Imai/AI_soccer/blob/master/AIsoccer_functionType/grand_info1.png "画面説明")
 
 ### P_data 構造体内の変数説明
 ***
