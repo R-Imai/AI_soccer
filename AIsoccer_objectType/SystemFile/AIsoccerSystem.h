@@ -2,7 +2,7 @@
 *	Name:		AIsoccer.h																						
 *	Author:		R.Imai																							
 *	Created:	2015 / 09 / 21																					
-*	Last Date:	2015 / 09 / 27																					
+*	Last Date:	2015 / 11 / 04																					
 *	Note:																										
 *																												
 *--------------------------------------------------------------------------------------------------------------*/
@@ -84,6 +84,7 @@ public:
 	int teamStrategy;
 	void update();
 	void stop();
+	int teamState(int);
 private:
 	
 
@@ -96,7 +97,7 @@ public:
 	~Ball();
 	double x, y;
 	double v, vx, vy;
-	int have, state;
+	int have, state, judge;
 
 	void update();
 	void speed(double,double);
@@ -122,8 +123,9 @@ public:
 	void crash();
 	void player_wall();
 
-
 private:
+	bool hitCheck(Player);
+	bool haveCheck(Player);
 
 };
 

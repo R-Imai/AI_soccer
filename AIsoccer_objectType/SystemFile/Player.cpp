@@ -2,7 +2,7 @@
 *	Name:		Player.cpp
 *	Author:		R.Imai
 *	Created:	2015 / 09 / 21
-*	Last Date:	2015 / 09 / 25
+*	Last Date:	2015 / 11 / 04
 *	Note:		side‚ÍU‚ß‚é•û‚ÌŠp“x
 *
 *--------------------------------------------------------------------------------------------------------------*/
@@ -59,15 +59,15 @@ void Player::turn(double ang){
 
 			this->ang = this->ang + 0.1;
 			if (this->have == 1){
-				ball.x = this->x + 56 * cos((this->ang + 0.1)*(P / 180));
-				ball.y = this->y + 56 * sin((this->ang + 0.1)*(P / 180));
+				ball.x = this->x + 55.5 * cos((this->ang + 0.1)*(P / 180));
+				ball.y = this->y + 55.5 * sin((this->ang + 0.1)*(P / 180));
 			}
 		}
 		else{		//Œv‰ñ‚è
 			this->ang = this->ang - 0.1;
 			if (this->have == 1){
-				ball.x = this->x + 56 * cos((this->ang - 0.1)*(P / 180));
-				ball.y = this->y + 56 * sin((this->ang - 0.1)*(P / 180));
+				ball.x = this->x + 55.5 * cos((this->ang - 0.1)*(P / 180));
+				ball.y = this->y + 55.5 * sin((this->ang - 0.1)*(P / 180));
 			}
 		}
 	}
@@ -156,6 +156,8 @@ void Player::pass(Player getter){
 	pass_ang = ang - this->ang;
 	if (this->have == 1){
 		if (fabs(pass_ang) < 30){
+			ball.x += 0.5*cos(ang*P / 180)*0.5;
+			ball.y += 0.5*sin(ang*P / 180)*0.5;
 			ball.vx = 0.5*cos(ang*P / 180);
 			ball.vy = 0.5*sin(ang*P / 180);
 			this->have = 0;

@@ -33,3 +33,7 @@ void Team::update(){
 	}
 }
 
+int Team::teamState(int state){
+	return this->side*state;
+}
+

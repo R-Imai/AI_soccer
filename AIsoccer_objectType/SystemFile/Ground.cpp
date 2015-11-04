@@ -2,13 +2,14 @@
 *	Name:		Ground.cpp
 *	Author:		R.Imai
 *	Created:	2015 / 09 / 25
-*	Last Date:	2015 / 09 / 27
+*	Last Date:	2015 / 11 / 04
 *	Note:
 *
 *--------------------------------------------------------------------------------------------------------------*/
 #include"AIsoccer.h"
 
 
+bool inFrag = true;
 Ground::Ground()
 {
 }
@@ -93,85 +94,157 @@ void Ground::goal(){
 	glutIdleFunc(NULL);
 }
 
+bool Ground::hitCheck(Player play){
+	bool check = false;
+
+	if (dist(play.x, play.y, ball.x, ball.y) <= 56){
+		check = true;
+	}
+	return check;
+}
+
+bool Ground::haveCheck(Player play){
+	bool check = false;
+	double ang = play.ang - (atan2(-play.y + ball.y, -play.x + ball.x) * 180 / P);
+	//cout << play.ang <<" : "<< atan2(-play.y + ball.y, -play.x + ball.x) * 180 / P << "\n";
+	if (ang < -180){
+		ang += 360;
+	}
+	else if (ang > 180){
+		ang -= 360;
+	}
+
+	if (fabs(ang) < 30){
+		check = true; 
+	}
+	return check;
+}
+
+
 void Ground::player_wall(){
-	double range, ang, theta;
-	int judge, cnt = 0, have = 0;//judge判定	cnt内側に入った数
-	int n = 1;
-	while (n <= PLAYER){
-		range = dist(A.player[n].x, A.player[n].y, ball.x, ball.y);
-		ang = A.player[n].ang - (atan2(-A.player[n].y + ball.y, -A.player[n].x + ball.x) * 180 / P);
-		if (ang > 180){ //角度を-180～180にする
-			ang = ang - 360;
-		}
-		else if (ang < -180){
-			ang = ang + 360;
-		}
-		if (range < 56 && fabs(ang)>30){//ボールの内側に入った時にボールを持つかはじくかの判定
-			judge = 1;
-			cnt = cnt + 1;
-			theta = atan2(A.player[n].y - ball.y, A.player[n].x - ball.x);
-			A.player[n].x = (A.player[n].x + ball.x) / 2 + 28 * cos(theta);
-			A.player[n].y = (A.player[n].y + ball.y) / 2 + 28 * sin(theta);
-			ball.x = (A.player[n].x + ball.x) / 2 - 28 * cos(theta);
-			ball.y = (A.player[n].y + ball.y) / 2 - 28 * sin(theta);
-		}
-		else if (range < 56 && fabs(ang) < 30){
-			have = n;
-		}
+	int inCount = 0;
+	int haveCount = 0;
+	int havePlayer[8],inPlayer[8];
+	double minDist;
+	double ballRange;
+	int posHave;
+	double PtoB, BtoS, StoP;
+	double theta;
+	double wasVx = ball.vx, wasVy = ball.vy;
 
-		range = dist(B.player[n].x, B.player[n].y, ball.x, ball.y);//Bチームも同様							
-		ang = B.player[n].ang - (atan2(-B.player[n].y + ball.y, -B.player[n].x + ball.x) * 180 / P);
-		if (ang > 180){
-			ang = ang - 360;
-		}
-		else if (ang < -180){
-			ang = ang + 360;
-		}
-		if (range < 56 && fabs(ang)>30){
-			judge = 1;
-			cnt = cnt + 1;
-			theta = atan2(B.player[n].y - ball.y, B.player[n].x - ball.x);
-			B.player[n].x = (B.player[n].x + ball.x) / 2 + 28 * cos(theta);
-			B.player[n].y = (B.player[n].y + ball.y) / 2 + 28 * sin(theta);
-			ball.x = (B.player[n].x + ball.x) / 2 - 28 * cos(theta);
-			ball.y = (B.player[n].y + ball.y) / 2 - 28 * sin(theta);
-		}
-		else if (range < 56 && fabs(ang) < 30){
-			have = -n;
-		}
-		n++;
+	Player player;
+	
+	for (int i = 1; i <= PLAYER; i++){
+		A.player[i].have = 0;
+		B.player[i].have = 0;
 	}
+	for (int i = 1; i <= PLAYER; i++){
+		if (hitCheck(A.player[i])){
+			if (haveCheck(A.player[i])){
+				havePlayer[haveCount] = i;
+				haveCount++;
+			}
+			else{
+				inPlayer[inCount] = i;
+				inCount++;
+			}
+		}
+		if (hitCheck(B.player[i])){
+			if (haveCheck(B.player[i])){
+				havePlayer[haveCount] = -i;
+				haveCount++;
+			}
+			else{
+				inPlayer[inCount] = -i;
+				inCount++;
+			}
+		}
+	}
+	//cout << "inCount = " << inCount << "	haveCount = " << haveCount<<"\n";
+	if (haveCount >= 1){
+		if (haveCount == 1){
+			if (havePlayer[0] > 0){
+				A.player[havePlayer[0]].have = 1;
+				ball.have = havePlayer[0];
+				ball.judge = 1;
+				ball.vx = 0;
+				ball.vy = 0;
+			}
+			else{
+				B.player[-havePlayer[0]].have = 1;
+				ball.judge = havePlayer[0];
+				ball.state = -1;
+				ball.vx = 0;
+				ball.vy = 0;
+			}
+		}
+		else{
+			if (havePlayer[0] > 0){
+				player = A.player[havePlayer[0]];
+			}
+			else{
+				player = B.player[-havePlayer[0]];
+			}
+			minDist = dist(player.x, player.y, ball.x, ball.y);
+			posHave = 0;
+			for (int i = 1; i <= haveCount; i++){
+				if (havePlayer[i] > 0){
+					player = A.player[havePlayer[i]];
+				}
+				else{
+					player = B.player[-havePlayer[i]];
+				}
+				if (minDist > dist(player.x, player.y, ball.x, ball.y)){
+					minDist = dist(player.x, player.y, ball.x, ball.y);
+					posHave = i;
+				}
+			}
+			if (havePlayer[posHave] > 0){
+				A.player[havePlayer[posHave]].have = 1;
+				ball.have = 1;
+				ball.judge = havePlayer[posHave];
+				ball.vx = 0;
+				ball.vy = 0;
+			}
+			else{
+				B.player[-havePlayer[posHave]].have = 1;
+				ball.have = -1;
+				ball.judge = havePlayer[posHave];
+				ball.vx = 0;
+				ball.vy = 0;
+			}
 
-
-	if (cnt == 0){//だれもボールの内側にいないとき
-		judge = 0;
-	}
-	else if (judge == 1 && col == 0){//初めて正面以外にボールが当たった時
-		ball.vx = -0.3*ball.vx;
-		ball.vy = -0.3*ball.vy;
-		col = 1;
-	}
-	if (judge == 0){
-		col = 0;
-	}
-	n = 1;
-	if (have != 0){//誰かがボールを持ってる
-		ball.vx = 0;
-		ball.vy = 0;
-		while (n <= PLAYER){
-			A.player[n].have = 0;
-			B.player[n].have = 0;
-			n++;
 		}
-		if (have > 0){//だれが持ってるかの確定(haveが+ならA)
-			A.player[have].have = 1;
-			ball.have = 1;
+	}
+	else if(inCount >= 1){
+		if (inCount == 1 && inFrag){
+			if (havePlayer[0] > 0){
+				player = A.player[inPlayer[0]];
+				ball.judge = 1;
+			}
+			else{
+				player = B.player[-inPlayer[0]];
+				ball.judge = -1;
+			}
+			PtoB = dist(player.x, player.y, ball.x, ball.y);
+			StoP = dist(ball.x, ball.y, ball.x + 500 * ball.vx, ball.y + 500 * ball.vy);//sqrt(500*ball.vx*500*ball.vx + 500*ball.vy*500*ball.vy);
+			BtoS = dist(ball.x + 500 * ball.vx, ball.y + 500 * ball.vy, player.x, player.y);
+			theta = fabs(P - 2 * acos((BtoS*BtoS + PtoB*PtoB - StoP*StoP) / (2 * BtoS*PtoB)));
+			//cout << "b to p : " << (ball.vy - player.vy) / (ball.vx - player.vx) << "	v : " << wasVy / wasVx << "\n";
+			if ((ball.y - player.y) / (ball.x - player.x) > ball.vy / ball.vx){
+				theta = -theta;
+			}
+			//cout << "theta : " << theta * 180 / P << "\n";
+			
+			ball.vx = 0.3*(wasVx*cos(theta)-wasVy*sin(theta));
+			ball.vy = 0.3*(wasVx*sin(theta)+wasVy*cos(theta));
+			inFrag = false;
 		}
-		else if (have < 0){//(haveが-ならB)
-			B.player[-have].have = 1;
-			ball.have = -1;
-		}
-
+		//ball.vx = -ball.vx;
+		//ball.vy = -ball.vy;
+	}
+	if (inCount == 0){
+		inFrag = true;
 	}
 
 }
@@ -180,25 +253,24 @@ void Ground::wall(){
 	if (((ball.x>650 || ball.x<-650 || ball.y>925 || ball.y<-925)) && (ball.x<l_g || ball.x>r_g)){
 
 		if ((ball.x>650 || ball.x < -650) && (ball.y<925 && ball.y>-925)){
-			ball.state = ball.have*(-1);
+			ball.state = ball.judge;
 		}
 		else if (ball.y < -925){
-			if (ball.have>0){
+			if (ball.judge>0){
 				ball.state = -2;
 			}
-			else if (ball.have < 0){
+			else if (ball.judge < 0){
 				ball.state = 3;
 			}
 		}
 		else if (ball.y > 925){
-			if (ball.have>0){
+			if (ball.judge>0){
 				ball.state = -3;
 			}
-			else if (ball.have < 0){
+			else if (ball.judge < 0){
 				ball.state = 2;
 			}
 		}
-
 		ball.vx = 0;
 		ball.vy = 0;
 		A.lineover_init();

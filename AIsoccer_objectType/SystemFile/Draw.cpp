@@ -112,7 +112,11 @@ void Draw::player(Player people,double r,double g,double b){
 void Draw::Ball(){
 	glColor3f(0, 0, 0);
 	glPushMatrix();
-	glTranslatef(ball.x, ball.y, 0);
-	circle(0.0, 0.0, 20);
+	circle(ball.x, ball.y, 20);
 	glPopMatrix();
+
+	
+	glEnd();
+
+	
 }
