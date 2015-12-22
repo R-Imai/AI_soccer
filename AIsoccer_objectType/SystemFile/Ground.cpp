@@ -172,7 +172,8 @@ void Ground::player_wall(){
 			}
 			else{
 				B.player[-havePlayer[0]].have = 1;
-				ball.judge = havePlayer[0];
+				ball.have = havePlayer[0];
+				ball.judge = -1;
 				ball.state = -1;
 				ball.vx = 0;
 				ball.vy = 0;
@@ -202,14 +203,14 @@ void Ground::player_wall(){
 			if (havePlayer[posHave] > 0){
 				A.player[havePlayer[posHave]].have = 1;
 				ball.have = 1;
-				ball.judge = havePlayer[posHave];
+				ball.judge = 1;
 				ball.vx = 0;
 				ball.vy = 0;
 			}
 			else{
 				B.player[-havePlayer[posHave]].have = 1;
 				ball.have = -1;
-				ball.judge = havePlayer[posHave];
+				ball.judge = -1;
 				ball.vx = 0;
 				ball.vy = 0;
 			}
@@ -218,23 +219,23 @@ void Ground::player_wall(){
 	}
 	else if(inCount >= 1){
 		if (inCount == 1 && inFrag){
-			if (havePlayer[0] > 0){
+			if (inPlayer[0] > 0){
 				player = A.player[inPlayer[0]];
 				ball.judge = 1;
+				cout << "A touch \n";
 			}
 			else{
 				player = B.player[-inPlayer[0]];
 				ball.judge = -1;
+				cout << "B touch \n";
 			}
 			PtoB = dist(player.x, player.y, ball.x, ball.y);
 			StoP = dist(ball.x, ball.y, ball.x + 500 * ball.vx, ball.y + 500 * ball.vy);//sqrt(500*ball.vx*500*ball.vx + 500*ball.vy*500*ball.vy);
 			BtoS = dist(ball.x + 500 * ball.vx, ball.y + 500 * ball.vy, player.x, player.y);
 			theta = fabs(P - 2 * acos((BtoS*BtoS + PtoB*PtoB - StoP*StoP) / (2 * BtoS*PtoB)));
-			//cout << "b to p : " << (ball.vy - player.vy) / (ball.vx - player.vx) << "	v : " << wasVy / wasVx << "\n";
 			if ((ball.y - player.y) / (ball.x - player.x) > ball.vy / ball.vx){
 				theta = -theta;
 			}
-			//cout << "theta : " << theta * 180 / P << "\n";
 			
 			ball.vx = 0.3*(wasVx*cos(theta)-wasVy*sin(theta));
 			ball.vy = 0.3*(wasVx*sin(theta)+wasVy*cos(theta));
@@ -253,10 +254,10 @@ void Ground::wall(){
 	if (((ball.x>650 || ball.x<-650 || ball.y>925 || ball.y<-925)) && (ball.x<l_g || ball.x>r_g)){
 
 		if ((ball.x>650 || ball.x < -650) && (ball.y<925 && ball.y>-925)){
-			ball.state = ball.judge;
+			ball.state = -ball.judge;
 		}
 		else if (ball.y < -925){
-			if (ball.judge>0){
+			if (ball.judge > 0){
 				ball.state = -2;
 			}
 			else if (ball.judge < 0){
@@ -264,7 +265,7 @@ void Ground::wall(){
 			}
 		}
 		else if (ball.y > 925){
-			if (ball.judge>0){
+			if (ball.judge > 0){
 				ball.state = -3;
 			}
 			else if (ball.judge < 0){
