@@ -2,7 +2,7 @@
 *	Name:		Ground.cpp
 *	Author:		R.Imai
 *	Created:	2015 / 09 / 25
-*	Last Date:	2015 / 11 / 04
+*	Last Date:	2015 / 12 / 27
 *	Note:
 *
 *--------------------------------------------------------------------------------------------------------------*/
@@ -167,6 +167,8 @@ void Ground::player_wall(){
 				A.player[havePlayer[0]].have = 1;
 				ball.have = havePlayer[0];
 				ball.judge = 1;
+				ball.x = A.player[havePlayer[0]].x + 55.5*cos(A.player[havePlayer[0]].ang*(P / 180));
+				ball.y = A.player[havePlayer[0]].y + 55.5*sin(A.player[havePlayer[0]].ang*(P / 180));
 				ball.vx = 0;
 				ball.vy = 0;
 			}
@@ -175,6 +177,8 @@ void Ground::player_wall(){
 				ball.have = havePlayer[0];
 				ball.judge = -1;
 				ball.state = -1;
+				ball.x = B.player[havePlayer[0]].x + 55.5*cos(B.player[havePlayer[0]].ang*(P / 180));
+				ball.y = B.player[havePlayer[0]].y + 55.5*sin(B.player[havePlayer[0]].ang*(P / 180));
 				ball.vx = 0;
 				ball.vy = 0;
 			}
@@ -222,12 +226,10 @@ void Ground::player_wall(){
 			if (inPlayer[0] > 0){
 				player = A.player[inPlayer[0]];
 				ball.judge = 1;
-				cout << "A touch \n";
 			}
 			else{
 				player = B.player[-inPlayer[0]];
 				ball.judge = -1;
-				cout << "B touch \n";
 			}
 			PtoB = dist(player.x, player.y, ball.x, ball.y);
 			StoP = dist(ball.x, ball.y, ball.x + 500 * ball.vx, ball.y + 500 * ball.vy);//sqrt(500*ball.vx*500*ball.vx + 500*ball.vy*500*ball.vy);
