@@ -177,8 +177,8 @@ void Ground::player_wall(){
 				ball.have = havePlayer[0];
 				ball.judge = -1;
 				ball.state = -1;
-				ball.x = B.player[havePlayer[0]].x + 55.5*cos(B.player[havePlayer[0]].ang*(P / 180));
-				ball.y = B.player[havePlayer[0]].y + 55.5*sin(B.player[havePlayer[0]].ang*(P / 180));
+				ball.x = B.player[-havePlayer[0]].x + 55.5*cos(B.player[-havePlayer[0]].ang*(P / 180));
+				ball.y = B.player[-havePlayer[0]].y + 55.5*sin(B.player[-havePlayer[0]].ang*(P / 180));
 				ball.vx = 0;
 				ball.vy = 0;
 			}
