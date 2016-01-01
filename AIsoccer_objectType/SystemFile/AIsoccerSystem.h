@@ -2,7 +2,7 @@
 *	Name:		AIsoccer.h																						
 *	Author:		R.Imai																							
 *	Created:	2015 / 09 / 21																					
-*	Last Date:	2015 / 11 / 04																					
+*	Last Date:	2016 / 01 / 01																					
 *	Note:																										
 *																												
 *--------------------------------------------------------------------------------------------------------------*/
@@ -33,8 +33,7 @@
 using namespace std;
 
 extern int score_A, score_B;
-//extern int goalflag;
-//extern int col;
+
 
 
 class Player
@@ -74,10 +73,11 @@ class Team
 public:
 	Team(int);
 	~Team();
-	virtual void strategy()=0;
-	virtual void defence_init()=0;
-	virtual void offence_init()=0;
-	virtual void lineover_init()=0;
+	virtual void strategy() = 0;
+	virtual void defence_init() = 0;
+	virtual void offence_init() = 0;
+	virtual void lineover_init() = 0;
+	virtual void click_init() = 0;
 
 	Player player[5];
 	int side;

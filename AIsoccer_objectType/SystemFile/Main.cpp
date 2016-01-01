@@ -2,7 +2,7 @@
 *	Name:		Main.cpp
 *	Author:		R.Imai
 *	Created:	2015 / 09 / 25
-*	Last Date:	2015 / 09 / 27
+*	Last Date:	2016 / 01 / 01
 *	Note:
 *
 *--------------------------------------------------------------------------------------------------------------*/
@@ -11,7 +11,7 @@ using namespace std;
 
 
 Ball ball;
-SampleA A(1);
+R_Imai A(1);
 SampleB B(-1);
 
 int score_A = 0, score_B = 0;
@@ -71,8 +71,8 @@ void init(void)
 {
 	glClearColor(g_R, g_G, g_B, 0.0);			//ÉEÉBÉìÉhÉEëSëÃÇÃêF
 	glShadeModel(GL_FLAT);					//îZíW
-	//A.offence_init();
-	A.defence_init();
+	A.offence_init();
+	//A.defence_init();
 	B.defence_init();
 
 }
@@ -98,31 +98,9 @@ void mouse(int button, int state, int x, int y){		//(É{É^Éì,âüÇµÇΩÇ©ó£ÇµÇΩÇ©,É}É
 			ball.y = -(y - 400)*2.4;
 			ball.vx = 0;
 			ball.vy = 0;
-
-			int n = 1;
-			A.div = 0;
-			A.teamStrategy = 0;
-			B.teamStrategy = 0;
 			ball.have = 0;
-			A.sw = 1;
-			while (n <= PLAYER){
-				A.player[n].cnd = 0;
-				A.player[n].mode = 0;
-				A.player[n].re = 0;
-				A.player[n].vang = 0;
-				A.player[n].have = 0;
-				A.player[n].vx = 0;
-				A.player[n].vy = 0;
-
-				B.player[n].cnd = 0;
-				B.player[n].mode = 0;
-				B.player[n].re = 0;
-				B.player[n].vang = 0;
-				B.player[n].have = 0;
-				B.player[n].vx = 0;
-				B.player[n].vy = 0;
-				n++;
-			}
+			A.click_init();
+			B.click_init();
 		}
 
 		break;
