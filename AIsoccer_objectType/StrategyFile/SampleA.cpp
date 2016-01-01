@@ -1,16 +1,9 @@
-/*--------------------------------------------------------------------------------------------------------------
-*	Name:		SampleA.cpp
-*	Author:		R.Imai
-*	Created:	2015 / 09 / 21
-*	Last Date:	2015 / 09 / 27
-*	Note:
-*
-*--------------------------------------------------------------------------------------------------------------*/
 #include"SampleA.h"
 #include"SampleB.h"
 
 SampleA::SampleA(int side) :Team(side)
 {
+	sw = 1;
 }
 
 SampleA::~SampleA()
@@ -171,6 +164,21 @@ void SampleA::keeper(){
 	}
 	if (dist(this->player[4].x, this->player[4].y, A4_X, ((ball.y - 905) / ball.x)*A4_X + 905) > 10 && this->player[4].have == 0 && this->player[4].cnd != 0){
 		this->player[4].cnd = 0;
+	}
+}
+
+void SampleA::click_init(){
+	this->div = 0;
+	this->teamStrategy = 0;
+	this->sw = 1;
+	for (int n = 0; n <= PLAYER; n++){
+		this->player[n].cnd = 0;
+		this->player[n].mode = 0;
+		this->player[n].re = 0;
+		this->player[n].vang = 0;
+		this->player[n].have = 0;
+		this->player[n].vx = 0;
+		this->player[n].vy = 0;
 	}
 }
 

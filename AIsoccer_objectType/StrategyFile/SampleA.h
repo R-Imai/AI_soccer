@@ -1,11 +1,3 @@
-/*--------------------------------------------------------------------------------------------------------------
-*	Name:		SampleA.h
-*	Author:		R.Imai
-*	Created:	2015 / 09 / 27
-*	Last Date:	2015 / 09 / 27
-*	Note:
-*
-*--------------------------------------------------------------------------------------------------------------*/
 #pragma once
 #include"AIsoccerSystem.h"
 #define AteamEnemy B
@@ -13,7 +5,7 @@
 class SampleA::public Team
 {
 public:
-	int sw = 1;
+	int sw;
 
 	SampleA(int);
 	~SampleA();
@@ -22,6 +14,7 @@ public:
 	void defence_init();
 	void offence_init();
 	void lineover_init();
+	void click_init();
 	void keeper();
 	int minplayer();
 	void divide();

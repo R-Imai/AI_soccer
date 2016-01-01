@@ -1,15 +1,5 @@
-/*--------------------------------------------------------------------------------------------------------------
-*	Name:		SampleB.cpp
-*	Author:		R.Imai
-*	Created:	2015 / 09 / 27
-*	Last Date:	2015 / 09 / 27
-*	Note:
-*
-*--------------------------------------------------------------------------------------------------------------*/
-
-
 #include"SampleB.h"
-#include"SampleA.h"
+#include"R_Imai.h"
 SampleB::SampleB(int side) :Team(side){
 }
 
@@ -23,7 +13,7 @@ void SampleB::defence_init(){
 	this->player[1].y = -500;
 	this->player[1].ang = 90;
 	this->player[2].x = 350;
-	this->player[2].y = 100;
+	this->player[2].y = -200;
 	this->player[2].ang = 90;
 	this->player[3].x = -100;
 	this->player[3].y = -450;
@@ -196,6 +186,20 @@ void SampleB::keeper(){
 	}
 }
 
+void SampleB::click_init(){
+	this->teamStrategy = 0;
+	for (int n = 0; n <= PLAYER; n++){
+		this->player[n].cnd = 0;
+		this->player[n].mode = 0;
+		this->player[n].re = 0;
+		this->player[n].vang = 0;
+		this->player[n].have = 0;
+		this->player[n].vx = 0;
+		this->player[n].vy = 0;
+	}
+}
+
+
 void SampleB::strategy(){
 	double B3_X = pow(240000 / (1 + pow((ball.y + 905) / ball.x, 2)), 0.5);
 	if (ball.x < 0 && B3_X>0){
@@ -214,24 +218,7 @@ void SampleB::strategy(){
 	{
 	case 0:
 	case 1:
-		/*if (this->player[2].have == 0){
-		this->player[2] = move(this->player[2], ball.x, ball.y);
-		}
-		if (this->player[2].have == 1){
-		this->player[2].v = 0;
-		this->player[2]=turn(this->player[2], (atan2(905 - this->player[2].y, -this->player[2].x)*180/P));
-		if (this->player[2].re == 1){
-		this->player[2].cnd = 1;
-		this->player[2].re = 0;
-		}
-		}
-		if (this->player[2].cnd == 1){
-		this->player[2] = shoot(this->player[2]);
-		if (this->player[2].re == 1){
-		this->player[2].cnd = 2;
-		this->player[2].re = 0;
-		}
-		}*/
+		
 
 		this->keeper();
 
@@ -282,24 +269,14 @@ void SampleB::strategy(){
 
 			if (this->player[2].cnd == 3){
 				this->player[2].shoot();
-				cout << "player2.have:" << this->player[2].have<<"\n";
+				//cout << "player2.have:" << this->player[2].have<<"\n";
 				this->player[2].cnd = 1;
 			}
 		}
 		if (this->player[2].have == 0 && this->player[2].cnd == 2){
 			this->player[2].cnd = 0;
 		}
-		/*if (this->player[2].cnd == 2){
-		this->player[2] = pass(this->player[2], this->player[1]);
-		if (this->player[2].re == 1){
-		this->player[2].cnd = 0;
-		this->player[2].re = 0;
-		}
-		}
-		if (dist(this->player[2].x, this->player[2].y, (A.player[Atean_mode[3]].x + A.player[Atean_mode[2]].x) / 2, (A.player[Atean_mode[3]].y + A.player[Atean_mode[2]].y) / 2) > 10 && this->player[2].have == 0 && this->player[2].cnd != 0){
-		this->player[2].cnd = 0;
-		this->player[2].re = 0;
-		}*/
+		
 
 		if (ball.y >= 0){
 			if (this->player[3].cnd == 0){
