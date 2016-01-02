@@ -11,8 +11,8 @@
 
 R_Imai::R_Imai(int side) :Team(side)
 {
-
-	int sw = 1;
+	this->initChecker = -1;
+	sw = 1;
 }
 
 R_Imai::~R_Imai()
@@ -20,6 +20,7 @@ R_Imai::~R_Imai()
 }
 
 void R_Imai::defence_init(){
+	this->initChecker = -1;
 	this->player[1].set(500, this->side * 200, -side*90);
 	this->player[2].set(-500, this->side * 200, -side*90);
 	this->player[3].set(0, this->side * 400, -side*90);
@@ -27,6 +28,7 @@ void R_Imai::defence_init(){
 }
 
 void R_Imai::offence_init(){
+	this->initChecker = -1;
 	this->player[1].set(-50, this->side * 50, -side * 45);
 	this->player[2].set(450, this->side * 100, -side * 135);
 	this->player[3].set(-400, this->side * 45, -side * 90);
@@ -112,6 +114,21 @@ void R_Imai::lineover_init(){
 	glutIdleFunc(NULL);
 }
 
+void R_Imai::click_init(){
+	this->div = 0;
+	this->teamStrategy = 0;
+	this->initChecker = -1;
+	for (int n = 0; n <= PLAYER; n++){
+		this->player[n].cnd = 0;
+		this->player[n].mode = 0;
+		this->player[n].re = 0;
+		this->player[n].vang = 0;
+		this->player[n].have = 0;
+		this->player[n].vx = 0;
+		this->player[n].vy = 0;
+	}
+}
+
 void R_Imai::keeper(){
 	double A4_X = pow(10000 / (1 + pow((ball.y - 905) / ball.x, 2)), 0.5);
 	//this->player[4].cnd = 1;
@@ -155,61 +172,102 @@ int R_Imai::minplayer(){
 
 #define OFFENCE1 teamMode[1]
 #define OFFENCE2 teamMode[2]
-/**
-*	mode 1:ボールに一番近い人
-*		 2:パスを受ける先の人
-*		 3:相手ゴールに一番近い人
-*		 4:キーパー
-*/
-void R_Imai::divide(){
+
+void R_Imai::divide(int mode){
 	double A_watch[4];//比較対象
 	double B_dist[11];
 	int k;
-
 	this->player[4].mode = 4;		//4はキーパー
 	teamMode[4] = 4;
 
 	for (int n = 1; n < PLAYER; n++){
 		B_dist[n] = dist(this->player[n].x, this->player[n].y, ball.x, ball.y);	//ボールとの距離を測る
 	}
-	
-	for (int n = 1; n < PLAYER; n++){
-		if (fmin(fmin(B_dist[1], B_dist[2]), B_dist[3]) == B_dist[n]){	//人数が増えるときに書き直すところ
-			this->player[n].mode = 1;		//ボールに一番近い人にmode1を振り分ける。
-			teamMode[1] = n;
-		}
-	}
-	k = 1;
 
-
-	for (int n = 1; n < PLAYER; n++){
-		if (n != teamMode[1]){
-			A_watch[k] = -this->player[n].y*this->side;//dist(this->player[n].x, this->player[n].y, -500, -500);
-			k++;
-		}
-	}
-	
-	for (int n = 1; n < PLAYER; n++){
-		if (n != teamMode[1]){
-			if (fmax(A_watch[1], A_watch[2]) == -this->player[n].y*this->side){
-				this->player[n].mode = 3;
-				teamMode[3] = n;
+	switch(mode){
+	case 0:
+		/**
+		*	攻撃時のモード:
+		*		 1:ボールに一番近い人
+		*		 2:パスを受ける先の人
+		*		 3:相手ゴールに一番近い人
+		*		 4:キーパー
+		*/
+		for (int n = 1; n < PLAYER; n++){
+			if (fmin(fmin(B_dist[1], B_dist[2]), B_dist[3]) == B_dist[n]){	//人数が増えるときに書き直すところ
+				this->player[n].mode = 1;		//ボールに一番近い人にmode1を振り分ける。
+				teamMode[1] = n;
 			}
 		}
-	}
-	
-	k = 1;
+		k = 1;
 
 
-	for (int n = 1; n < PLAYER; n++){
-		if (n != teamMode[1] && n != teamMode[3]){
-			this->player[n].mode = 2;
-			teamMode[2] = n;
-			break;
+		for (int n = 1; n < PLAYER; n++){
+			if (n != teamMode[1]){
+				A_watch[k] = -this->player[n].y*this->side;//dist(this->player[n].x, this->player[n].y, -500, -500);
+				k++;
+			}
 		}
+
+		for (int n = 1; n < PLAYER; n++){
+			if (n != teamMode[1]){
+				if (fmax(A_watch[1], A_watch[2]) == -this->player[n].y*this->side){
+					this->player[n].mode = 3;
+					teamMode[3] = n;
+				}
+			}
+		}
+
+		k = 1;
+
+
+		for (int n = 1; n < PLAYER; n++){
+			if (n != teamMode[1] && n != teamMode[3]){
+				this->player[n].mode = 2;
+				teamMode[2] = n;
+				break;
+			}
+		}
+		div = 1;
+		break;
+
+	case 1:
+		/**
+		*	守備時のモード
+		*		1:	自陣に一番近い人 
+		*		2:	ボールに一番近い人
+		*		3:	
+		*/
+		for (int i = 1; i < PLAYER; i++){
+			if (fmax(fmax(this->side*this->player[1].y, this->side*this->player[2].y), this->side*this->player[3].y) == this->side*this->player[i].y){
+				this->player[i].mode = 1;
+				teamMode[1] = i;
+			}
+		}
+		k = 1;
+		for (int i = 1; i < PLAYER; i++){
+			if (i != teamMode[1]){
+				A_watch[k] = B_dist[i];
+				k++;
+			}
+		}
+
+		for (int i = 1; i < PLAYER; i++){
+			if (fmin(A_watch[1], A_watch[2]) == B_dist[i]){
+				this->player[i].mode = 2;
+				teamMode[2] = i;
+			}
+		}
+
+		for (int i = 1; i < PLAYER; i++){
+			if (i != teamMode[1] && i != teamMode[2]){
+				this->player[i].mode = 3;
+				teamMode[3] = i;
+			}
+		}
+
+		break;
 	}
-	
-	div = 1;
 }
 
 int R_Imai::getPos(Player play, char axis, double start, double end){
@@ -238,7 +296,7 @@ int R_Imai::getPos(Player play, char axis, double start, double end){
 	}
 }
 
-int enemyCount(char axis, double start, double end){
+int R_Imai::enemyCount(char axis, double start, double end){
 	int cnt = 0;
 	switch (axis)
 	{
@@ -294,13 +352,13 @@ void R_Imai::strategy(){
 	int ballSide;
 	int List[PLAYER];
 	int k;
+	int enemyPoint;
 	double workSpace;
 	double min_dist;
 	double judge_max, judge_min;
 	double A_pos[PLAYER + 1];
 	double A_watch[4];
 	int passMode[] = { 0, 5, 1 };
-	int initChecker = -1;
 
 	//cout << "player4.cmd:" << A.player[4].cnd<<"\n";
 	if ((this->teamStrategy == 0 || this->teamStrategy == 1) && ball.have >= 0){
@@ -319,8 +377,8 @@ void R_Imai::strategy(){
 
 	switch (this->teamStrategy){
 	case 0://攻撃
-		if (sw != 0){
-			divide();
+		if (this->initChecker != 0){
+			divide(0);
 			sw = 0;
 		}
 			Ycnt[0] = 0;//enemyCount('x', -650.0, -216.0);
@@ -622,7 +680,7 @@ void R_Imai::strategy(){
 				break;
 			}
 		}
-		initChecker = 0;
+		this->initChecker = 0;
 		break;
 	/**
 	*	mode:
@@ -631,8 +689,55 @@ void R_Imai::strategy(){
 	*		3: 反撃準備(本当にやばくなったら守備に)
 	*/
 	case 1://守備
-		for (int i = 0; i < PLAYER; i++){
-			teamMode[i] = 0;
+		if (this->initChecker != 1){
+			this->divide(1);
+			for (int i = 1; i < PLAYER; i++){
+				this->player[i].cnd = 0;
+			}
+		}
+		for (int i = 1; i < PLAYER; i++){
+			switch (this->player[i].mode){
+			case 1:
+				for (int g = 1; g <= PLAYER; g++){
+				}
+				for (int j = 1; j <= PLAYER; j++){
+					if (fmax(fmax(this->side*R_ImaiEnemy.player[1].y, this->side*R_ImaiEnemy.player[2].y), fmax(this->side*R_ImaiEnemy.player[3].y, this->side*R_ImaiEnemy.player[4].y)) == R_ImaiEnemy.player[j].y){
+						enemyPoint = j;
+					}
+				}
+				switch (this->player[i].cnd){
+				case 0:
+
+					this->player[i].move((4*R_ImaiEnemy.player[enemyPoint].x + ball.x) / 5, (4*R_ImaiEnemy.player[enemyPoint].y + ball.y) / 5);
+					if (this->player[i].re == 1){
+						this->player[i].cnd = 1;
+						this->player[i].re = 0;
+					}
+					break;
+				case 1:
+					this->player[i].turn_B();
+					if (this->player[i].re == 1){
+						this->player[i].re = 0;
+					}
+					if (dist((4*R_ImaiEnemy.player[enemyPoint].x + ball.x) / 5, (4*R_ImaiEnemy.player[enemyPoint].y + ball.y) / 5, this->player[i].x, this->player[i].y) > 30){
+						this->player[i].cnd = 0;
+					}
+					break;
+				}
+				break;
+			case 2:
+				this->player[i].get();
+				if (this->player[i].re == 1){
+					this->player[i].re = 0;
+				}
+				break;
+			case 3:
+				this->player[i].get();
+				if (this->player[i].re == 1){
+					this->player[i].re = 0;
+				}
+				break;
+			}
 		}
 		/*min_dist = dist(this->player[1].x, this->player[1].y, ball.x, ball.y);
 		for (int i = 2; i < PLAYER; i++){
@@ -684,7 +789,7 @@ void R_Imai::strategy(){
 				}
 			}
 		}*/
-		initChecker = 1;
+		this->initChecker = 1;
 		break;
 
 
@@ -714,7 +819,7 @@ void R_Imai::strategy(){
 				break;
 			}
 		}
-		initChecker = 2;
+		this->initChecker = 2;
 		break;
 	case 3://コーナーキック
 		if (this->player[1].cnd == 0){
@@ -742,7 +847,7 @@ void R_Imai::strategy(){
 				break;
 			}
 		}
-		initChecker = 3;
+		this->initChecker = 3;
 		break;
 	case 4://ゴールキック
 		if (this->player[4].cnd == 0){
@@ -806,7 +911,7 @@ void R_Imai::strategy(){
 				break;
 			}
 		}
-		initChecker = 4;
+		this->initChecker = 4;
 		break;
 	case 5:
 		break;

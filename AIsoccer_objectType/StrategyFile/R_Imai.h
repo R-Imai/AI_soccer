@@ -17,13 +17,15 @@ public:
 	R_Imai(int);
 	~R_Imai();
 	int sw;
+	int initChecker;
 	void strategy();
 	void defence_init();
 	void offence_init();
 	void lineover_init();
+	void click_init();
 	void keeper();
 	int minplayer();
-	void divide();
+	void divide(int);
 	int getPos(Player,char,double,double);
 	int enemyCount(char, double, double);
 	bool checkPass(Player, Player);
