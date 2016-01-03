@@ -131,7 +131,7 @@ void R_Imai::click_init(){
 
 void R_Imai::keeper(){
 	double A4_X = pow(10000 / (1 + pow((ball.y - 905) / ball.x, 2)), 0.5);
-	//this->player[4].cnd = 1;
+
 	if (ball.x < 0 && A4_X>0){
 		A4_X = -A4_X;
 	}
@@ -143,14 +143,11 @@ void R_Imai::keeper(){
 	}
 	if (this->player[4].re == 5){
 		this->player[4].turn_B();
+		if (this->player[4].re == 1){
+			this->player[4].re = 5;
+		}
 	}
-	/*if (this->player[4].have == 1){
-		this->player[4].cnd = 2;
-	}
-	if (this->player[4].cnd == 2){
-		this->player[4].pass(this->player[teamMode[1]]);
-	}*/
-	if (dist(this->player[4].x, this->player[4].y, A4_X, ((ball.y - 905) / ball.x)*A4_X + 905) > 10 && this->player[4].have == 0 && this->player[4].cnd != 0){
+	if (dist(this->player[4].x, this->player[4].y, A4_X, ((ball.y - 905) / ball.x)*A4_X + 905) > 10 && this->player[4].have == 0){
 		this->player[4].re = 0;
 	}
 }
