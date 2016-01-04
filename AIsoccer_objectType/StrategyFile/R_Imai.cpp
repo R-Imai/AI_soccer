@@ -361,7 +361,7 @@ void R_Imai::strategy(){
 	if ((this->teamStrategy == 0 || this->teamStrategy == 1) && ball.have >= 0){
 		this->teamStrategy = 0;
 	}
-	if (ball.have < 0){
+	if (ball.have < 0 && this->teamStrategy < 2){
 		this->teamStrategy = 1;
 	}
 	for (int n = 1; n <= PLAYER; n++){
@@ -371,7 +371,7 @@ void R_Imai::strategy(){
 	if (this->player[4].have == 0){
 		this->keeper();
 	}
-
+	//cout << "teamstrategy is " << this->teamStrategy << "\n";
 	switch (this->teamStrategy){
 	case 0://UŒ‚
 		if (this->initChecker != 0){
