@@ -2,7 +2,7 @@
 *	Name:		R-Imai.cpp
 *	Author:		R.Imai
 *	Created:	2015 / 09 / 21
-*	Last Date:	2015 / 10 / 07
+*	Last Date:	2016 / 01 / 05
 *	Note:
 *
 *--------------------------------------------------------------------------------------------------------------*/
@@ -69,20 +69,25 @@ void R_Imai::lineover_init(){
 		this->player[1].set(ball.x + ballSide * 55, ball.y, 90 + ballSide * 90);
 		
 		if (ball.y > 800){//Ž©ƒS[ƒ‹‚É‹ß‚¢
-			this->player[2].set(ballSide * 800, ball.y - this->side * 300, -180 + atan2(A.player[2].y - ball.y, A.player[2].x - ball.x) * 180 / P);
+			this->player[2].set(ballSide * 800, ball.y - this->side * 300, atan2(A.player[2].y - ball.y, A.player[2].x - ball.x) * 180 / P);
+			this->player[2].set(ballSide * 800, ball.y - this->side * 300, atan2(A.player[2].y - ball.y, A.player[2].x - ball.x) * 180 / P);
 			this->player[3].set(-ballSide * 300, ball.y - this->side * 150, -180 + atan2(A.player[3].y - ball.y, A.player[3].x - ball.x) * 180 / P);
-			this->player[4].set(0, 800, -180 + atan2(A.player[4].y - ball.y, A.player[4].x - ball.x) * 180 / P);
+			//this->player[4].set(0, 800, -180 + atan2(A.player[4].y - ball.y, A.player[4].x - ball.x) * 180 / P);
+			cout << "1\n";
 		}
 
 		else if (ball.y<-500){//“GƒS[ƒ‹‚É‹ß‚¢
 			this->player[2].set(ballSide * 200, ball.y + this->side * 200, -180 + atan2(A.player[2].y - ball.y, A.player[2].x - ball.x) * 180 / P);
+			this->player[2].set(ballSide * 200, ball.y + this->side * 200, -180 + atan2(A.player[2].y - ball.y, A.player[2].x - ball.x) * 180 / P);
 			this->player[3].set(-ballSide * 300, ball.y + this->side * 50, -180 + atan2(A.player[3].y - ball.y, A.player[3].x - ball.x) * 180 / P);
-			this->player[4].set(0, 300, -180 + atan2(A.player[4].y - ball.y, A.player[4].x - ball.x) * 180 / P);
+			//this->player[4].set(0, 300, -180 + atan2(A.player[4].y - ball.y, A.player[4].x - ball.x) * 180 / P);
+			cout << "2\n";
 		}
 		else{//‚»‚Ì‘¼
-			this->player[2].set(ballSide * 400, ball.y + this->side * 100, -180 + atan2(A.player[2].y - ball.y, A.player[2].x - ball.x) * 180 / P);
+			this->player[2].set(-ballSide * 200, ball.y - this->side * 100, -180 + atan2(A.player[2].y - ball.y, A.player[2].x - ball.x) * 180 / P);
+			this->player[2].set(-ballSide * 200, ball.y - this->side * 100, -180 + atan2(A.player[2].y - ball.y, A.player[2].x - ball.x) * 180 / P);
 			this->player[3].set(ballSide * 200, ball.y - this->side * 400, -180 + atan2(A.player[3].y - ball.y, A.player[3].x - ball.x) * 180 / P);
-			this->player[4].set(-ballSide * 300, ball.y - this->side * 200, -180 + atan2(A.player[4].y - ball.y, A.player[4].x - ball.x) * 180 / P);
+			//this->player[4].set(-ballSide * 300, ball.y - this->side * 200, -180 + atan2(A.player[4].y - ball.y, A.player[4].x - ball.x) * 180 / P);
 		}
 		this->teamStrategy = 2;
 		break;
@@ -339,6 +344,32 @@ bool R_Imai::checkPass(Player passer, Player getter){
 	}
 	return re;
 }
+
+
+bool R_Imai::checkPass(Player passer,double x, double y){
+	int direc = 0, re = 1;
+	double ang = atan2(y - passer.y, x - passer.x)*(180 / P);
+	double TAN = tan(ang*(P / 180));
+	double sec = -TAN*passer.x + passer.y;
+	double a = 1 + (TAN*TAN), b = -1, c = -passer.x*TAN + passer.y, d;
+	double range = 80;
+	if (fabs(ang) < 90){
+		direc = 1;
+	}
+	else{
+		direc = -1;
+	}
+
+	//printf("%f\t%d\n", ang, direc);
+	for (int i = 1; i <= PLAYER; i++){
+		d = fabs(TAN*R_ImaiEnemy.player[i].x + b*R_ImaiEnemy.player[i].y + c) / sqrt(TAN*TAN + b*b);
+		if (d <= range && direc*passer.x < direc*R_ImaiEnemy.player[i].x){
+			re = 0;
+		}
+	}
+	return re;
+}
+
 
 void R_Imai::strategy(){
 	double B_dist[PLAYER + 1];
@@ -795,11 +826,15 @@ void R_Imai::strategy(){
 			this->player[1].pass(this->player[2]);
 			if (this->player[1].re == 1){
 				this->player[1].re = 0;
-				this->player[1].cnd = 0;
+				this->player[1].cnd = 1;
 			}
 		}
+		if (this->player[1].cnd == 1){
+			this->player[1].go_G(0);
+		}
 		if (this->player[2].have == 1){
-			switch (this->player[2].cnd){
+			this->teamStrategy = 0;
+			/*switch (this->player[2].cnd){
 			case 0:
 				this->player[2].turn_G();
 				if (this->player[2].re == 1){
@@ -814,7 +849,7 @@ void R_Imai::strategy(){
 					this->player[2].cnd = 0;
 				}
 				break;
-			}
+			}*/
 		}
 		this->initChecker = 2;
 		break;

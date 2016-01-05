@@ -2,7 +2,7 @@
 *	Name:		R-Imai.h
 *	Author:		R.Imai
 *	Created:	2015 / 09 / 27
-*	Last Date:	2015 / 09 / 27
+*	Last Date:	2016 / 01 / 05
 *	Note:
 *
 *--------------------------------------------------------------------------------------------------------------*/
@@ -29,6 +29,7 @@ public:
 	int getPos(Player,char,double,double);
 	int enemyCount(char, double, double);
 	bool checkPass(Player, Player);
+	bool checkPass(Player, double, double);
 int div;
 private:
 	int teamMode[5];
