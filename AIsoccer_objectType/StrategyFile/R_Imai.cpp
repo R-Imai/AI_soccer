@@ -69,8 +69,9 @@ void R_Imai::lineover_init(){
 		this->player[1].set(ball.x + ballSide * 55, ball.y, 90 + ballSide * 90);
 		
 		if (ball.y > 800){//©ƒS[ƒ‹‚É‹ß‚¢
-			this->player[2].set(ballSide * 800, ball.y - this->side * 300, atan2(A.player[2].y - ball.y, A.player[2].x - ball.x) * 180 / P);
-			this->player[2].set(ballSide * 800, ball.y - this->side * 300, atan2(A.player[2].y - ball.y, A.player[2].x - ball.x) * 180 / P);
+			this->player[2].set(ballSide * 300, ball.y - this->side * 500, -atan2(A.player[2].y - ball.y, A.player[2].x - ball.x) * 180 / P);
+			this->player[2].set(ballSide * 300, ball.y - this->side * 500, -atan2(A.player[2].y - ball.y, A.player[2].x - ball.x) * 180 / P);
+			this->player[3].set(-ballSide * 300, ball.y - this->side * 150, -180 + atan2(A.player[3].y - ball.y, A.player[3].x - ball.x) * 180 / P);
 			this->player[3].set(-ballSide * 300, ball.y - this->side * 150, -180 + atan2(A.player[3].y - ball.y, A.player[3].x - ball.x) * 180 / P);
 			//this->player[4].set(0, 800, -180 + atan2(A.player[4].y - ball.y, A.player[4].x - ball.x) * 180 / P);
 			cout << "1\n";
@@ -386,6 +387,7 @@ void R_Imai::strategy(){
 	double judge_max, judge_min;
 	double A_pos[PLAYER + 1];
 	double A_watch[4];
+	double pointY;
 	int passMode[] = { 0, 5, 1 };
 
 	//cout << "player4.cmd:" << A.player[4].cnd<<"\n";
@@ -409,6 +411,7 @@ void R_Imai::strategy(){
 			divide(0);
 			sw = 0;
 		}
+		//cout << this->player[1].cnd << "\t" << this->player[2].cnd << "\t" << this->player[3].cnd << "\t" << this->player[4].cnd << "\n";
 			Ycnt[0] = 0;//enemyCount('x', -650.0, -216.0);
 			Ycnt[1] = 1;//enemyCount('x', -216.0, 216.0);
 			Ycnt[2] = 0;//enemyCount('x', 216.0, 650.0);
@@ -472,8 +475,10 @@ void R_Imai::strategy(){
 					}
 					break;
 				case 2:
+					if (this->player[teamMode[3]].cnd == 5){
+						this->player[n].pass(this->player[teamMode[3]]);
+					}
 					this->player[teamMode[3]].cnd = 2;
-					this->player[n].pass(this->player[teamMode[3]]);
 					if (this->player[n].re == 1){
 						this->player[n].cnd = 3;
 						this->player[n].re = 0;
@@ -483,7 +488,11 @@ void R_Imai::strategy(){
 
 					break;
 				case 4:
-					this->player[n].move(-getPos(this->player[teamMode[2]], 'x', -216, 216) * 434, this->player[teamMode[2]].y - 300);
+					pointY = this->player[teamMode[2]].y - this->side * 300;
+					if (-this->side * pointY > Y_MAX){
+						pointY = -this->side*Y_MAX*0.9;
+					}
+					this->player[n].move(-getPos(this->player[teamMode[2]], 'x', -216, 216) * 520, pointY);
 					if (this->player[n].re == 1){
 						this->player[n].re = 0;
 					}
@@ -555,7 +564,11 @@ void R_Imai::strategy(){
 			case 2:
 				switch (this->player[n].cnd){
 				case 0:
-					this->player[n].move(-getPos(this->player[teamMode[1]], 'x', -216, 216) * 434, this->player[teamMode[1]].y - 300);
+					pointY = this->player[teamMode[1]].y - this->side * 300;
+					if (-this->side * pointY > Y_MAX){
+						pointY = -this->side*Y_MAX*0.9;
+					}
+					this->player[n].move(-getPos(this->player[teamMode[1]], 'x', -216, 216) * 520, pointY);
 					if (this->player[n].re == 1){
 						this->player[n].re = 0;
 					}
@@ -605,8 +618,10 @@ void R_Imai::strategy(){
 						}
 					}
 					else{
+						if (this->player[teamMode[3]].cnd == 5){
+							this->player[n].pass(this->player[teamMode[3]]);
+						}
 						this->player[teamMode[3]].cnd = 2;
-						this->player[n].pass(this->player[teamMode[3]]);
 						if (this->player[n].re == 1){
 							this->player[n].cnd = 4;
 							this->player[n].re = 0;
@@ -638,11 +653,9 @@ void R_Imai::strategy(){
 					break;
 
 				case 1:
-
 					if (-fabs(this->player[n].x) / this->player[n].x == -fabs(ball.x) / ball.x){
 						this->player[n].cnd = 0;
 					}
-				case 2:
 					this->player[n].turn_B();
 					if (this->player[n].re == 1){
 						this->player[n].re = 0;
@@ -651,21 +664,29 @@ void R_Imai::strategy(){
 						this->player[n].cnd = 3;
 					}
 					break;
+				case 2:
+				case 5:
+					//cout << fabs(-fabs(ball.x) / ball.x * this->player[n].x) <<"\t"<< fabs(-fabs(ball.x) / ball.x * r_g) << "\n";
+					if (fabs(-fabs(ball.x) / ball.x * this->player[n].x) + 50 < fabs(-fabs(ball.x) / ball.x * r_g)){
+						this->player[n].move(-fabs(ball.x) / ball.x * r_g, -750);
+						if (this->player[n].re == 1){
+							this->player[n].re = 0;
+						}
+					}
+					else{
+						this->player[n].turn_B();
+						if (this->player[n].re == 1){
+							this->player[n].re = 0;
+							this->player[n].cnd = 5;
+						}
+					}
+					if (this->player[n].have == 1){
+						this->player[n].cnd = 3;
+					}
+					
+					break;
 
 				case 3:
-
-					/*if (this->player[n].y > -600){
-					this->player[n] = move(this->player[n], (root - 2) * 600, -700);
-					if (this->player[n].re == 1){
-					this->player[n].re = 0;
-					}
-					}
-					else{*/
-					/*this->player[n]=turn_P(this->player[n], this->player[teamMode[3]]);
-					if (this->player[n].re == 1){
-					this->player[n].re = 0;
-					this->player[n].cnd = 3;
-					}*/
 					this->player[n].turn_G();
 					if (this->player[n].re == 1){
 						this->player[n].cnd = 4;
@@ -677,7 +698,7 @@ void R_Imai::strategy(){
 					this->player[n].shoot();
 					if (this->player[n].re == 1){
 						this->player[n].re = 0;
-						this->player[n].cnd = 5;
+						this->player[n].cnd = 0;
 					}
 					break;
 				}
