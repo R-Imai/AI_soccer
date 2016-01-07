@@ -97,8 +97,11 @@ void R_Imai::lineover_init(){
 		ball.x = 0;
 		ball.y = 800;
 		this->player[4].set(0, this->side*855, -90);
-		this->player[3].set(-300, this->side*600, -180 + atan2(A.player[3].y - ball.y, A.player[3].x - ball.x) * 180 / P);
-		this->player[2].set(300, this->side*600, -180 + atan2(A.player[2].y - ball.y, A.player[2].x - ball.x) * 180 / P);
+		this->player[3].set(-300, this->side * 500, -180 + atan2(A.player[3].y - ball.y, A.player[3].x - ball.x) * 180 / P);
+		this->player[3].set(-300, this->side * 500, -180 + atan2(A.player[3].y - ball.y, A.player[3].x - ball.x) * 180 / P);
+		this->player[2].set(300, this->side * 400, -180 + atan2(A.player[2].y - ball.y, A.player[2].x - ball.x) * 180 / P);
+		this->player[2].set(300, this->side * 400, -180 + atan2(A.player[2].y - ball.y, A.player[2].x - ball.x) * 180 / P);
+		this->player[1].set(0, -this->side * 400, -180 + atan2(A.player[4].y - ball.y, A.player[4].x - ball.x) * 180 / P);
 		this->player[1].set(0, -this->side * 400, -180 + atan2(A.player[4].y - ball.y, A.player[4].x - ball.x) * 180 / P);
 
 		this->teamStrategy = 4;
@@ -903,10 +906,17 @@ void R_Imai::strategy(){
 		this->initChecker = 3;
 		break;
 	case 4://ゴールキック
+		if (this->initChecker != 4){
+			for (int i = 1; i < PLAYER; i++){
+				this->player[i].cnd = 0;
+			}
+		}
+		//cout << this->player[1].cnd << "\t" << this->player[2].cnd << "\t" << this->player[3].cnd << "\t" << this->player[4].cnd << "\n";
 		if (this->player[4].cnd == 0){
 			this->player[4].pass(this->player[3]);
 			if (this->player[4].re == 1){
 				this->player[4].re = 0;
+				this->teamStrategy = 0;
 			}
 		}
 		if (this->player[3].have == 1){
@@ -927,18 +937,23 @@ void R_Imai::strategy(){
 				break;
 			}
 		}
-		this->player[2].turn_B();
+		if (this->player[2].have == 0){
+			this->player[2].turn_B();
+			if (this->player[2].re == 1){
+				this->player[2].re = 0;
+			}
+		}
 		if (this->player[2].have == 1){
 			switch (this->player[2].cnd){
 			case 0:
-				this->player[2].turn(this->player[4]);
+				this->player[2].turn_G();
 				if (this->player[2].re == 1){
 					this->player[2].re = 0;
 					this->player[2].cnd = 1;
 				}
 				break;
 			case 1:
-				this->player[2].pass(this->player[4]);
+				this->player[2].shoot();
 				if (this->player[2].re == 1){
 					this->player[2].re = 0;
 					this->player[2].cnd = 0;
@@ -955,13 +970,13 @@ void R_Imai::strategy(){
 					this->player[1].cnd = 1;
 				}
 				break;
-			case 1:
+			/*case 1:
 				this->player[1].shoot();
 				if (this->player[1].re == 1){
 					this->player[1].re = 0;
 					this->player[1].cnd = 0;
 				}
-				break;
+				break;*/
 			}
 		}
 		this->initChecker = 4;
