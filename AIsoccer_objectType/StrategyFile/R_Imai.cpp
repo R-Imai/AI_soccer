@@ -25,6 +25,7 @@ void R_Imai::defence_init(){
 	this->player[2].set(-500, this->side * 200, -side*90);
 	this->player[3].set(0, this->side * 400, -side*90);
 	this->player[4].set(0, this->side * 800, -side*90);
+	this->teamStrategy = 1;
 }
 
 void R_Imai::offence_init(){
@@ -33,6 +34,7 @@ void R_Imai::offence_init(){
 	this->player[2].set(450, this->side * 100, -side * 135);
 	this->player[3].set(-400, this->side * 45, -side * 90);
 	this->player[4].set(0, this->side * 400, -side * 90);
+	this->teamStrategy = 0;
 }
 
 void R_Imai::lineover_init(){
@@ -99,10 +101,10 @@ void R_Imai::lineover_init(){
 		this->player[4].set(0, this->side*855, -90);
 		this->player[3].set(-300, this->side * 500, -180 + atan2(A.player[3].y - ball.y, A.player[3].x - ball.x) * 180 / P);
 		this->player[3].set(-300, this->side * 500, -180 + atan2(A.player[3].y - ball.y, A.player[3].x - ball.x) * 180 / P);
-		this->player[2].set(300, this->side * 400, -180 + atan2(A.player[2].y - ball.y, A.player[2].x - ball.x) * 180 / P);
-		this->player[2].set(300, this->side * 400, -180 + atan2(A.player[2].y - ball.y, A.player[2].x - ball.x) * 180 / P);
-		this->player[1].set(0, -this->side * 400, -180 + atan2(A.player[4].y - ball.y, A.player[4].x - ball.x) * 180 / P);
-		this->player[1].set(0, -this->side * 400, -180 + atan2(A.player[4].y - ball.y, A.player[4].x - ball.x) * 180 / P);
+		this->player[2].set(500, this->side * 400, -180 + atan2(A.player[2].y - ball.y, A.player[2].x - ball.x) * 180 / P);
+		this->player[2].set(500, this->side * 400, -180 + atan2(A.player[2].y - ball.y, A.player[2].x - ball.x) * 180 / P);
+		this->player[1].set(-400, -this->side * 600, -180 + atan2(A.player[4].y - ball.y, A.player[4].x - ball.x) * 180 / P);
+		this->player[1].set(-400, -this->side * 600, -180 + atan2(A.player[4].y - ball.y, A.player[4].x - ball.x) * 180 / P);
 
 		this->teamStrategy = 4;
 		break;
@@ -913,10 +915,22 @@ void R_Imai::strategy(){
 		}
 		//cout << this->player[1].cnd << "\t" << this->player[2].cnd << "\t" << this->player[3].cnd << "\t" << this->player[4].cnd << "\n";
 		if (this->player[4].cnd == 0){
-			this->player[4].pass(this->player[3]);
-			if (this->player[4].re == 1){
-				this->player[4].re = 0;
-				this->teamStrategy = 0;
+			if (this->checkPass(this->player[4], this->player[3])){
+				this->player[4].pass(this->player[3]);
+				if (this->player[4].re == 1){
+					this->player[4].re = 0;
+					//this->teamStrategy = 0;
+				}
+			}
+			else if (this->checkPass(this->player[4], this->player[2])){
+				this->player[4].pass(this->player[2]);
+				if (this->player[4].re == 1){
+					this->player[4].re = 0;
+					//this->teamStrategy = 0;
+				}
+			}
+			else{
+				this->player[4].move(this->player[3].x, this->player[4].y);
 			}
 		}
 		if (this->player[3].have == 1){
@@ -929,15 +943,33 @@ void R_Imai::strategy(){
 				}
 				break;
 			case 1:
-				this->player[3].pass(this->player[2]);
+				if (this->checkPass(this->player[3], this->player[2])){
+					this->player[3].pass(this->player[2]);
+					if (this->player[3].re == 1){
+						this->player[3].re = 0;
+						this->player[3].cnd = 2;
+					}
+				}
+				else{
+					this->teamStrategy = 0;
+				}
+				break;
+			case 2:
+				this->player[3].move(500, -this->side * 720);
 				if (this->player[3].re == 1){
 					this->player[3].re = 0;
-					this->player[3].cnd = 0;
 				}
 				break;
 			}
 		}
-		if (this->player[2].have == 0){
+		else if (this->player[3].cnd == 2){
+			this->player[3].move(-500, -this->side * 720);
+			if (this->player[3].re == 1){
+				this->player[3].re = 0;
+			}
+		}
+		
+		if (this->player[2].have == 0 && this->player[2].cnd != 2){
 			this->player[2].turn_B();
 			if (this->player[2].re == 1){
 				this->player[2].re = 0;
@@ -946,20 +978,41 @@ void R_Imai::strategy(){
 		if (this->player[2].have == 1){
 			switch (this->player[2].cnd){
 			case 0:
-				this->player[2].turn_G();
+				this->player[2].turn(this->player[1]);
 				if (this->player[2].re == 1){
 					this->player[2].re = 0;
 					this->player[2].cnd = 1;
 				}
 				break;
 			case 1:
-				this->player[2].shoot();
+				if (this->checkPass(this->player[2], this->player[1])){
+					this->player[2].pass(this->player[1]);
+					if (this->player[2].re == 1){
+						this->player[2].re = 0;
+						this->player[2].cnd = 2;
+					}
+				}
+				else{
+					this->teamStrategy = 0;
+				}
+				break;
+			case 2:
+				this->player[2].move(500,-this->side*720);
 				if (this->player[2].re == 1){
 					this->player[2].re = 0;
-					this->player[2].cnd = 0;
 				}
 				break;
 			}
+		}
+		else if (this->player[2].cnd == 2){
+			this->player[2].move(500, -this->side * 720);
+			if (this->player[2].re == 1){
+				this->player[2].re = 0;
+			}
+		}
+		this->player[1].turn_B();
+		if (this->player[1].re == 1){
+			this->player[1].re = 0;
 		}
 		if (this->player[1].have == 1){
 			switch (this->player[1].cnd){
@@ -970,13 +1023,18 @@ void R_Imai::strategy(){
 					this->player[1].cnd = 1;
 				}
 				break;
-			/*case 1:
-				this->player[1].shoot();
-				if (this->player[1].re == 1){
-					this->player[1].re = 0;
-					this->player[1].cnd = 0;
+			case 1:
+				if (this->checkPass(this->player[1], 0, -this->side*Y_MAX)){
+					this->player[1].shoot();
+					if (this->player[1].re == 1){
+						this->player[1].re = 0;
+						this->player[1].cnd = 0;
+					}
 				}
-				break;*/
+				else {
+					this->teamStrategy = 0;
+				}
+				break;
 			}
 		}
 		this->initChecker = 4;
