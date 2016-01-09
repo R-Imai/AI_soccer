@@ -112,12 +112,14 @@ void R_Imai::lineover_init(){
 		//自分のチームのコーナキック
 		ball.x = ballSide * 630;
 		ball.y = -905;
-		this->player[1].set(ballSide * 670, -this->side * 945, 45);
+		this->player[1].set(ballSide * 670, -this->side * 945,this->side * 90 + this->side * ballSide * 45);
 		this->player[1].have = 1;
 
 		this->player[2].set(ballSide * 400, -this->side * 500, -180 + atan2(A.player[2].y - ball.y, A.player[2].x - ball.x) * 180 / P);
-		this->player[3].set(-ballSide * 100, -this->side * 550, -180 + atan2(A.player[3].y - ball.y, A.player[3].x - ball.x) * 180 / P);
-		this->player[4].set(-ballSide*-400, -this->side * 700, -180 + atan2(A.player[4].y - ball.y, A.player[4].x - ball.x) * 180 / P);
+		this->player[2].set(ballSide * 400, -this->side * 500, -180 + atan2(A.player[2].y - ball.y, A.player[2].x - ball.x) * 180 / P);
+		this->player[3].set(-ballSide * 200, -this->side * 550, -180 + atan2(A.player[3].y - ball.y, A.player[3].x - ball.x) * 180 / P);
+		this->player[3].set(-ballSide * 200, -this->side * 550, -180 + atan2(A.player[3].y - ball.y, A.player[3].x - ball.x) * 180 / P);
+		//this->player[4].set(-ballSide*-400, -this->side * 700, -180 + atan2(A.player[4].y - ball.y, A.player[4].x - ball.x) * 180 / P);
 
 		this->teamStrategy = 3;
 		break;
