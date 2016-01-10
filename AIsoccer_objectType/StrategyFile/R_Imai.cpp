@@ -58,6 +58,12 @@ void R_Imai::lineover_init(){
 	{
 	case -3:
 		//相手チームのコーナーキック
+		this->player[1].set(ballSide * 250, this->side * (Y_MAX - 125), 180 + atan2(A.player[1].y - this->side * Y_MAX, A.player[1].x - ballSide*X_MAX) * 180 / P);
+		this->player[1].set(ballSide * 250, this->side * (Y_MAX - 125), 180 + atan2(A.player[1].y - this->side * Y_MAX, A.player[1].x - ballSide*X_MAX) * 180 / P);
+		this->player[2].set(ballSide * 200, this->side * (Y_MAX - 250), 180 + atan2(A.player[2].y - this->side * Y_MAX, A.player[2].x - ballSide*X_MAX) * 180 / P);
+		this->player[2].set(ballSide * 200, this->side * (Y_MAX - 250), 180 + atan2(A.player[2].y - this->side * Y_MAX, A.player[2].x - ballSide*X_MAX) * 180 / P);
+		this->player[3].set(ballSide * 100, this->side * (Y_MAX - 350), 180 + atan2(A.player[3].y - this->side * Y_MAX, A.player[3].x - ballSide*X_MAX) * 180 / P);
+		this->player[3].set(ballSide * 100, this->side * (Y_MAX - 350), 180 + atan2(A.player[3].y - this->side * Y_MAX, A.player[3].x - ballSide*X_MAX) * 180 / P);
 		break;
 	case -2:
 		//相手チームのゴールキック
@@ -377,6 +383,7 @@ bool R_Imai::checkPass(Player passer,double x, double y){
 	}
 	return re;
 }
+
 
 
 void R_Imai::strategy(){
