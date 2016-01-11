@@ -254,30 +254,45 @@ void Ground::player_wall(){
 
 void Ground::wall(){
 	if (((ball.x>650 || ball.x<-650 || ball.y>925 || ball.y<-925)) && (ball.x<l_g || ball.x>r_g)){
-
+		ball.vx = 0;
+		ball.vy = 0;
 		if ((ball.x>650 || ball.x < -650) && (ball.y<925 && ball.y>-925)){
 			ball.state = -ball.judge;
+			if (ball.state < 0){
+				B.lineover_init();
+				A.lineover_init();
+			}
+			else{
+				A.lineover_init();
+				B.lineover_init();
+			}
 		}
 		else if (ball.y < -925){
 			if (ball.judge > 0){
 				ball.state = -2;
+				B.lineover_init();
+				A.lineover_init();
 			}
 			else if (ball.judge < 0){
 				ball.state = 3;
+				A.lineover_init();
+				B.lineover_init();
 			}
 		}
 		else if (ball.y > 925){
 			if (ball.judge > 0){
 				ball.state = -3;
+				B.lineover_init();
+				A.lineover_init();
 			}
 			else if (ball.judge < 0){
 				ball.state = 2;
+				A.lineover_init();
+				B.lineover_init();
 			}
 		}
-		ball.vx = 0;
-		ball.vy = 0;
-		A.lineover_init();
-		B.lineover_init();
+		//A.lineover_init();
+		//B.lineover_init();
 
 	}
 	
