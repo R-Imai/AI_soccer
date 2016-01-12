@@ -38,6 +38,9 @@ void R_Imai::offence_init(){
 }
 
 void R_Imai::lineover_init(){
+	int workSpase;
+	int enemyMin;
+	int enemyMax;
 	int ballSide;
 	if (ball.x > 0){
 		ballSide = 1;
@@ -54,6 +57,7 @@ void R_Imai::lineover_init(){
 		n++;
 	}
 
+	cout << ball.state << "\n";
 	switch (this->teamState(ball.state))
 	{
 	case -3:
@@ -67,6 +71,36 @@ void R_Imai::lineover_init(){
 		break;
 	case -2:
 		//相手チームのゴールキック
+		enemyMax = 1;
+		for (int i = 2; i <= PLAYER; i++){
+			if (fmax(this->side*R_ImaiEnemy.player[enemyMax].y, this->side*R_ImaiEnemy.player[i].y) == R_ImaiEnemy.player[i].y){
+				enemyMax = i;
+			}
+		};
+		enemyMin = 1;
+		for (int i = 2; i <= PLAYER; i++){
+			if (fmin(this->side*R_ImaiEnemy.player[enemyMin].y, this->side*R_ImaiEnemy.player[i].y) == R_ImaiEnemy.player[i].y){
+				enemyMin = i;
+			}
+		}
+		workSpase = enemyMin;
+		if (workSpase != 1){
+			enemyMin = 1;
+		}
+		else{
+			enemyMin = 2;
+		}
+		for (int i = 2; i <= PLAYER; i++){
+			if (fmin(this->side*R_ImaiEnemy.player[enemyMin].y, this->side*R_ImaiEnemy.player[i].y) == R_ImaiEnemy.player[i].y && i != workSpase){
+				enemyMin = i;
+			}
+		}
+		this->player[1].set((ball.x + R_ImaiEnemy.player[enemyMax].x) / 2, (ball.y + R_ImaiEnemy.player[enemyMax].y) / 2, 180 + atan2(A.player[1].y - ball.y, A.player[1].x - ball.x) * 180 / P);
+		this->player[1].set((ball.x + R_ImaiEnemy.player[enemyMax].x) / 2, (ball.y + R_ImaiEnemy.player[enemyMax].y) / 2, 180 + atan2(A.player[1].y - ball.y, A.player[1].x - ball.x) * 180 / P);
+		this->player[2].set((ball.x + R_ImaiEnemy.player[enemyMin].x) / 2, (ball.y + R_ImaiEnemy.player[enemyMin].y) / 2, 180 + atan2(A.player[2].y - ball.y, A.player[2].x - ball.x) * 180 / P);
+		this->player[2].set((ball.x + R_ImaiEnemy.player[enemyMin].x) / 2, (ball.y + R_ImaiEnemy.player[enemyMin].y) / 2, 180 + atan2(A.player[2].y - ball.y, A.player[2].x - ball.x) * 180 / P);
+		this->player[3].set(-this->player[2].x, this->player[2].y, 180 + atan2(A.player[3].y - ball.y, A.player[3].x - ball.x) * 180 / P);
+		this->player[3].set(-this->player[2].x, this->player[2].y, 180 + atan2(A.player[3].y - ball.y, A.player[3].x - ball.x) * 180 / P);
 		break;
 	case -1:
 		//相手チームのスローイン
@@ -384,6 +418,23 @@ bool R_Imai::checkPass(Player passer,double x, double y){
 	return re;
 }
 
+void R_Imai::debugStrategy(){
+	if (this->player[3].have == 0){
+		this->player[3].move(ball.x, ball.y);
+	}
+	if (this->player[3].have == 1){
+		this->player[3].v = 0;
+		this->player[3].cnd = 1;
+		if (this->player[3].re == 1){
+			this->player[3].cnd = 1;
+			this->player[3].re = 0;
+		}
+	}
+	if (this->player[3].cnd == 1){
+		this->player[3].shoot();
+	}
+
+}
 
 
 void R_Imai::strategy(){
