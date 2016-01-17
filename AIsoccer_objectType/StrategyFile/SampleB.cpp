@@ -32,12 +32,12 @@ void SampleB::defence_init(){
 	}
 }
 void SampleB::lineover_init(){
-	int side;
+	int ballSide;
 	if (ball.x > 0){
-		side = 1;
+		ballSide = 1;
 	}
 	else{
-		side = -1;
+		ballSide = -1;
 	}
 
 	int n = 1;
@@ -51,21 +51,21 @@ void SampleB::lineover_init(){
 	{
 	case -3:
 		//自分のチームのコーナーキック
-		ball.x = side * 630;
+		ball.x = ballSide * 630;
 		ball.y = 905;
-		this->player[1].x = side * 670;
+		this->player[1].x = ballSide * 670;
 		this->player[1].y = 945;
-		this->player[1].ang = -90 - side * 45;
+		this->player[1].ang = -90 - ballSide * 45;
 
-		this->player[2].x = side * 400;
+		this->player[2].x = ballSide * 400;
 		this->player[2].y = 500;
 		this->player[2].ang = -180 + atan2(A.player[2].y - ball.y, A.player[2].x - ball.x) * 180 / P;
 
-		this->player[3].x = -side * 100;
+		this->player[3].x = -ballSide * 100;
 		this->player[3].y = 550;
 		this->player[3].ang = -180 + atan2(A.player[3].y - ball.y, A.player[3].x - ball.x) * 180 / P;
 
-		this->player[4].x = side*(-400);
+		this->player[4].x = ballSide*(-400);
 		this->player[4].y = 700;
 		this->player[4].ang = -180 + atan2(A.player[4].y - ball.y, A.player[4].x - ball.x) * 180 / P;
 		break;
@@ -89,14 +89,15 @@ void SampleB::lineover_init(){
 		break;
 	case -1:
 		//自分のチームのスローイン
-		this->player[1].x = ball.x + side * 55;
+		ball.x = ballSide * 630;
+		this->player[1].x = ball.x + ballSide * 55;
 		this->player[1].y = ball.y;
-		this->player[1].ang = A.player[1].ang = 90 + side * 90;
+		this->player[1].ang = A.player[1].ang = 90 + ballSide * 90;
 		if (ball.y < -800){//自ゴールに近い
-			this->player[2].x = side * 800;
+			this->player[2].x = ballSide * 800;
 			this->player[2].y = ball.y + 300;
 			this->player[2].ang = +180 + atan2(A.player[2].y - ball.y, A.player[2].x - ball.x) * 180 / P;
-			this->player[3].x = -side * 300;
+			this->player[3].x = -ballSide * 300;
 			this->player[3].y = ball.y + 150;
 			this->player[3].ang = +180 + atan2(A.player[3].y - ball.y, A.player[3].x - ball.x) * 180 / P;
 			this->player[4].x = 0;
@@ -105,10 +106,10 @@ void SampleB::lineover_init(){
 
 		}
 		else if (ball.y > 500){//敵ゴールに近い
-			this->player[2].x = side * 200;
+			this->player[2].x = ballSide * 200;
 			this->player[2].y = ball.y - 200;
 			this->player[2].ang = 180 + atan2(A.player[2].y - ball.y, A.player[2].x - ball.x) * 180 / P;
-			this->player[3].x = -side * 300;
+			this->player[3].x = -ballSide * 300;
 			this->player[3].y = ball.y - 50;
 			this->player[3].ang = 180 + atan2(A.player[3].y - ball.y, A.player[3].x - ball.x) * 180 / P;
 			this->player[4].x = 0;
@@ -117,26 +118,26 @@ void SampleB::lineover_init(){
 
 		}
 		else{//その他
-			this->player[2].x = side * 400;
+			this->player[2].x = ballSide * 400;
 			this->player[2].y = ball.y - 100;
 			this->player[2].ang = 180 + atan2(A.player[2].y - ball.y, A.player[2].x - ball.x) * 180 / P;
-			this->player[3].x = side * 200;
+			this->player[3].x = ballSide * 200;
 			this->player[3].y = ball.y + 400;
 			this->player[3].ang = 180 + atan2(A.player[3].y - ball.y, A.player[3].x - ball.x) * 180 / P;
-			this->player[4].x = -side * 300;
+			this->player[4].x = -ballSide * 300;
 			this->player[4].y = ball.y + 200;
 			this->player[4].ang = 180 + atan2(A.player[4].y - ball.y, A.player[4].x - ball.x) * 180 / P;
 		}
 
 		break;
 	case 1:
-		this->player[1].x = side * 200;
+		this->player[1].x = ballSide * 200;
 		this->player[1].y = ball.y - 200;
 		this->player[1].ang = 180 + atan2(A.player[2].y - ball.y, A.player[2].x - ball.x) * 180 / P;
-		this->player[2].x = side * 200;
+		this->player[2].x = ballSide * 200;
 		this->player[2].y = ball.y - 200;
 		this->player[2].ang = 180 + atan2(A.player[2].y - ball.y, A.player[2].x - ball.x) * 180 / P;
-		this->player[3].x = -side * 300;
+		this->player[3].x = -ballSide * 300;
 		this->player[3].y = ball.y - 50;
 		this->player[3].ang = 180 + atan2(A.player[3].y - ball.y, A.player[3].x - ball.x) * 180 / P;
 		this->player[4].x = 0;
@@ -146,9 +147,17 @@ void SampleB::lineover_init(){
 		break;
 	case 2:
 		//相手チームのゴールキック
+		this->player[1].set(-300, 0, 90);
+		this->player[2].set(0, 0, 90);
+		this->player[3].set(300, 0, 90);
+		this->player[4].set(0, -800, 90);
 		break;
 	case 3:
 		//相手チームのコーナーキック
+		this->player[1].set(-300, 0, 90);
+		this->player[2].set(0, 0, 90);
+		this->player[3].set(300, 0, 90);
+		this->player[4].set(0, -800, 90);
 		break;
 	}
 }
@@ -199,6 +208,30 @@ void SampleB::click_init(){
 	}
 }
 
+void SampleB::debugStrategy(){
+	if (this->player[3].have == 0){
+		this->player[3].move(ball.x, ball.y);
+	}
+	if (this->player[3].have == 1){
+		this->player[3].v = 0;
+		this->player[3].cnd = 1;
+		if (this->player[3].re == 1){
+			this->player[3].cnd = 1;
+			this->player[3].re = 0;
+		}
+	}
+	if (this->player[3].cnd == 1){
+		this->player[3].turn(-180);
+		if (this->player[3].re == 1){
+			this->player[3].cnd = 2;
+			this->player[3].re = 0;
+		}
+	}
+	if (this->player[3].cnd == 2){
+		this->player[3].shoot();
+	}
+}
+
 
 void SampleB::strategy(){
 	double B3_X = pow(240000 / (1 + pow((ball.y + 905) / ball.x, 2)), 0.5);
@@ -227,7 +260,7 @@ void SampleB::strategy(){
 		}
 		if (this->player[1].have == 1){
 			this->player[1].v = 0;
-			//this->player[1] = B_turn_G(this->player[1]);
+			//this->player[1].turn(-90);
 			this->player[1].cnd = 1;
 			if (this->player[1].re == 1){
 				this->player[1].cnd = 1;
@@ -235,7 +268,7 @@ void SampleB::strategy(){
 			}
 		}
 		if (this->player[1].cnd == 1){
-			//this->player[1] = shoot(this->player[1]);
+			//this->player[1].shoot();
 			this->player[1].pass(this->player[2]);
 		}
 		if (this->player[1].re == 1){
@@ -262,6 +295,7 @@ void SampleB::strategy(){
 		if (this->player[2].have == 1){
 			//this->player[2] = pass(this->player[2], this->player[1]);
 			this->player[2].turn_G();
+			//this->player[2].turn(90);
 			if (this->player[2].re == 1){
 				this->player[2].cnd = 3;
 				this->player[2].re = 0;

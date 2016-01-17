@@ -2,7 +2,7 @@
 *	Name:		R-Imai.cpp
 *	Author:		R.Imai
 *	Created:	2015 / 09 / 21
-*	Last Date:	2016 / 01 / 05
+*	Last Date:	2016 / 01 / 17
 *	Note:
 *
 *--------------------------------------------------------------------------------------------------------------*/
@@ -104,6 +104,30 @@ void R_Imai::lineover_init(){
 		break;
 	case -1:
 		//相手チームのスローイン
+		if (this->side*ball.y > Y_MAX - 250){
+			this->player[1].set(ballSide * 250, this->side * (Y_MAX - 125), 180 + atan2(A.player[1].y - this->side * Y_MAX, A.player[1].x - ballSide*X_MAX) * 180 / P);
+			this->player[1].set(ballSide * 250, this->side * (Y_MAX - 125), 180 + atan2(A.player[1].y - this->side * Y_MAX, A.player[1].x - ballSide*X_MAX) * 180 / P);
+			this->player[2].set(ballSide * 200, this->side * (Y_MAX - 250), 180 + atan2(A.player[2].y - this->side * Y_MAX, A.player[2].x - ballSide*X_MAX) * 180 / P);
+			this->player[2].set(ballSide * 200, this->side * (Y_MAX - 250), 180 + atan2(A.player[2].y - this->side * Y_MAX, A.player[2].x - ballSide*X_MAX) * 180 / P);
+			this->player[3].set(ballSide * 100, this->side * (Y_MAX - 350), 180 + atan2(A.player[3].y - this->side * Y_MAX, A.player[3].x - ballSide*X_MAX) * 180 / P);
+			this->player[3].set(ballSide * 100, this->side * (Y_MAX - 350), 180 + atan2(A.player[3].y - this->side * Y_MAX, A.player[3].x - ballSide*X_MAX) * 180 / P);
+		}
+		else if (this->side*ball.y > 0){
+			this->player[1].set(-200, ball.y + this->side * 150, calcAng(this->player[1], ball));
+			this->player[1].set(-200, ball.y + this->side * 150, calcAng(this->player[1], ball));
+			this->player[2].set(ballSide * 400, ball.y + this->side * 100, calcAng(this->player[2], ball));
+			this->player[2].set(ballSide * 400, ball.y + this->side * 100, calcAng(this->player[2], ball));
+			this->player[3].set(200, ball.y + this->side * 150, calcAng(this->player[3], ball));
+			this->player[3].set(200, ball.y + this->side * 150, calcAng(this->player[3], ball));
+		}
+		else if (this->side*ball.y < 0){
+			this->player[1].set(-200, this->side * 150, calcAng(this->player[1], ball));
+			this->player[1].set(-200, this->side * 150, calcAng(this->player[1], ball));
+			this->player[2].set(ballSide * 400, ball.y + this->side * 250, calcAng(this->player[2], ball));
+			this->player[2].set(ballSide * 400, ball.y + this->side * 250, calcAng(this->player[2], ball));
+			this->player[3].set(200, this->side * 150, calcAng(this->player[3], ball));
+			this->player[3].set(200, this->side * 150, calcAng(this->player[3], ball));
+		}
 		break;
 	case 1:
 		//自分のチームのスローイン
