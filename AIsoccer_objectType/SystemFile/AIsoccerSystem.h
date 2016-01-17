@@ -2,8 +2,9 @@
 *	Name:		AIsoccer.h																						
 *	Author:		R.Imai																							
 *	Created:	2015 / 09 / 21																					
-*	Last Date:	2016 / 01 / 01																					
-*	Note:																										
+*	Last Date:	2016 / 01 / 17																				
+*	Note:		
+*		Project Created:	2015 / 02 / 01																								
 *																												
 *--------------------------------------------------------------------------------------------------------------*/
 #pragma once
@@ -146,6 +147,10 @@ private:
 
 
 double dist(double x1, double y1, double x2, double y2);
+double calcAng(Player, Player);
+double calcAng(Player, Ball);
+double calcAng(Player, double, double);
+double calcAng(double, double, double, double);
 
 
 
